@@ -1,0 +1,10 @@
+{
+  "nodeModulesDir": "auto",
+  "tasks": {
+    "tw:build": "deno run -A npm:@tailwindcss/cli -i static/css/input.css -o static/css/output.css --minify",
+    "tw:watch": "deno run -A npm:@tailwindcss/cli -i static/css/input.css -o static/css/output.css --watch"
+  },
+  "imports": {
+    "tailwindcss": "npm:tailwindcss@^4.1.18"
+  }
+}

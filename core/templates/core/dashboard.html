@@ -1,0 +1,68 @@
+{% extends "core/base.html" %}
+
+{% block title %}Dashboard - minipep{% endblock %}
+
+{% block content %}
+<div class="min-h-screen">
+    {% include "core/_header.html" %}
+
+    <!-- Main -->
+    <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        <h2 class="text-xl font-semibold text-gray-900 mb-6">Today's Encounters</h2>
+
+        {% if encounters %}
+        <div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Time</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Patient</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Doctor</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Reason</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Status</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for enc in encounters %}
+                    <tr>
+                        <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{{ enc.scheduled_at|time:"H:i" }}</td>
+                        <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{{ enc.patient }}</td>
+                        <td class="whitespace-nowrap px-4 py-3 text-sm"><a href="{% url 'schedule-list' %}?doctor={{ enc.doctor.pk }}" class="text-indigo-600 hover:text-indigo-500 font-medium">{{ enc.doctor }}</a></td>
+                        <td class="px-4 py-3 text-sm text-gray-600 max-w-xs truncate">{{ enc.reason }}</td>
+                        <td class="whitespace-nowrap px-4 py-3 text-sm">
+                            {% if enc.status == "scheduled" %}
+                                <span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-blue-600/20 ring-inset">Scheduled</span>
+                            {% elif enc.status == "arrived" %}
+                                <span class="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-green-600/20 ring-inset">Arrived</span>
+                            {% elif enc.status == "in_progress" %}
+                                <span class="inline-flex items-center rounded-full bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-800 ring-1 ring-yellow-600/20 ring-inset">In Progress</span>
+                            {% elif enc.status == "completed" %}
+                                <span class="inline-flex items-center rounded-full bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-gray-500/20 ring-inset">Completed</span>
+                            {% elif enc.status == "cancelled" %}
+                                <span class="inline-flex items-center rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-red-600/20 ring-inset">Cancelled</span>
+                            {% endif %}
+                        </td>
+                        <td class="whitespace-nowrap px-4 py-3 text-sm">
+                            {% if enc.status == "scheduled" %}
+                            <form method="post" action="{% url 'encounter-mark-arrived' enc.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" class="rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500 transition">
+                                    Mark Arrived
+                                </button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="rounded-lg border border-gray-200 bg-white px-6 py-12 text-center shadow-sm">
+            <p class="text-sm text-gray-500">No encounters scheduled for today.</p>
+        </div>
+        {% endif %}
+    </main>
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Clinics" %} - minipep{% endblock %}
+
+{% block content %}
+<div class="min-h-screen">
+    {% include "core/_header.html" %}
+
+    <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        <section>
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-semibold text-gray-900">{% trans "Clinics" %}</h2>
+                <a href="{% url 'clinic-create' %}" class="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition">{% trans "Add" %}</a>
+            </div>
+            {% if clinics %}
+            <div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">{% trans "Name" %}</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">{% trans "CNPJ" %}</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">{% trans "Phone" %}</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">{% trans "Email" %}</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">{% trans "City/State" %}</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        {% for clinic in clinics %}
+                        <tr>
+                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{{ clinic.name }}</td>
+                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600">{{ clinic.cnpj|default:"—" }}</td>
+                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600">{{ clinic.phone|default:"—" }}</td>
+                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600">{{ clinic.email|default:"—" }}</td>
+                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600">{% if clinic.city %}{{ clinic.city }}{% if clinic.state %}/{{ clinic.state }}{% endif %}{% else %}—{% endif %}</td>
+                            <td class="whitespace-nowrap px-4 py-3 text-sm">
+                                <a href="{% url 'clinic-edit' clinic.pk %}" class="text-indigo-600 hover:text-indigo-500 font-medium">{% trans "Edit" %}</a>
+                                <a href="{% url 'clinic-delete' clinic.pk %}" class="ml-3 text-red-600 hover:text-red-500 font-medium">{% trans "Delete" %}</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="rounded-lg border border-gray-200 bg-white px-6 py-12 text-center shadow-sm">
+                <p class="text-sm text-gray-500">{% trans "No clinics." %}</p>
+            </div>
+            {% endif %}
+        </section>
+    </main>
+</div>
+{% endblock %}
