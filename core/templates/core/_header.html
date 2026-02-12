@@ -1,25 +1,51 @@
-{% load i18n %}<header class="bg-white border-b border-gray-200">
+{% load i18n %}<header class="bg-violet-600">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14">
-        <div class="flex items-center gap-6">
-            <h1 class="text-lg font-bold text-gray-900">minipep</h1>
-            <nav class="flex items-center gap-4 text-sm font-medium">
+        <div class="flex items-center gap-8">
+            <a href="{% url 'dashboard' %}" class="text-lg font-bold text-white tracking-tight">minipep</a>
+            <nav class="flex items-center gap-1 text-sm font-medium">
                 <a href="{% url 'dashboard' %}"
-                   class="{% if request.resolver_match.url_name == 'dashboard' %}text-indigo-600{% else %}text-gray-500 hover:text-gray-700{% endif %}">
+                   class="rounded-md px-3 py-1.5 {% if request.resolver_match.url_name == 'dashboard' %}bg-violet-500 text-white{% else %}text-violet-200 hover:bg-violet-500 hover:text-white{% endif %} transition">
                     {% trans "Dashboard" %}
                 </a>
+                {% if user.is_staff %}
                 <a href="{% url 'clinic-list' %}"
-                   class="{% if 'clinic' in request.resolver_match.url_name %}text-indigo-600{% else %}text-gray-500 hover:text-gray-700{% endif %}">
+                   class="rounded-md px-3 py-1.5 {% if 'clinic' in request.resolver_match.url_name %}bg-violet-500 text-white{% else %}text-violet-200 hover:bg-violet-500 hover:text-white{% endif %} transition">
                     {% trans "Clinics" %}
                 </a>
+                <a href="{% url 'patient-list' %}"
+                   class="rounded-md px-3 py-1.5 {% if 'patient' in request.resolver_match.url_name %}bg-violet-500 text-white{% else %}text-violet-200 hover:bg-violet-500 hover:text-white{% endif %} transition">
+                    {% trans "Patients" %}
+                </a>
+                <a href="{% url 'doctor-list' %}"
+                   class="rounded-md px-3 py-1.5 {% if 'doctor' in request.resolver_match.url_name %}bg-violet-500 text-white{% else %}text-violet-200 hover:bg-violet-500 hover:text-white{% endif %} transition">
+                    {% trans "Doctors" %}
+                </a>
                 <a href="{% url 'schedule-list' %}"
-                   class="{% if 'schedule' in request.resolver_match.url_name %}text-indigo-600{% else %}text-gray-500 hover:text-gray-700{% endif %}">
+                   class="rounded-md px-3 py-1.5 {% if 'schedule' in request.resolver_match.url_name %}bg-violet-500 text-white{% else %}text-violet-200 hover:bg-violet-500 hover:text-white{% endif %} transition">
                     {% trans "Schedules" %}
                 </a>
+                {% endif %}
             </nav>
         </div>
         <div class="flex items-center gap-4 text-sm">
-            <span class="text-gray-600">{{ user.email }}</span>
-            <a href="{% url 'logout' %}" class="text-indigo-600 hover:text-indigo-500 font-medium">{% trans "Sign out" %}</a>
+            {% if all_clinics|length > 1 %}
+            <form method="post" action="{% url 'select-clinic' %}">
+                {% csrf_token %}
+                <select name="clinic_id" onchange="this.form.submit()"
+                        class="rounded-md border-0 bg-violet-500 px-2 py-1 text-sm text-white focus:ring-2 focus:ring-white">
+                    {% if not request.clinic %}
+                    <option value="" selected>{% trans "Select clinic…" %}</option>
+                    {% endif %}
+                    {% for c in all_clinics %}
+                    <option value="{{ c.pk }}" {% if request.clinic and c.pk == request.clinic.pk %}selected{% endif %}>{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+            {% elif request.clinic %}
+            <span class="text-violet-200">{{ request.clinic.name }}</span>
+            {% endif %}
+            <span class="text-violet-200">{{ user.email }}</span>
+            <a href="{% url 'logout' %}" class="text-violet-200 hover:text-white font-medium transition">{% trans "Sign out" %}</a>
         </div>
     </div>
 </header>

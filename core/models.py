@@ -83,6 +83,7 @@ class Patient(models.Model):
 class Encounter(models.Model):
     class Status(models.TextChoices):
         SCHEDULED = "scheduled", "Scheduled"
+        CONFIRMED = "confirmed", "Confirmed"
         ARRIVED = "arrived", "Arrived"
         IN_PROGRESS = "in_progress", "In Progress"
         COMPLETED = "completed", "Completed"
@@ -90,10 +91,15 @@ class Encounter(models.Model):
 
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="encounters")
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name="encounters")
+    clinic = models.ForeignKey(
+        "Clinic", on_delete=models.SET_NULL, null=True, blank=True, related_name="encounters"
+    )
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.SCHEDULED)
     scheduled_at = models.DateTimeField()
     reason = models.TextField()
     notes = models.TextField(blank=True)
+    anamnesis = models.TextField(blank=True)
+    prescription = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

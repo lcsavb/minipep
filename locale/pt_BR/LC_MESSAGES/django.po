@@ -1,0 +1,282 @@
+# minipep — Portuguese (Brazil) translations.
+# Copyright (C) 2026
+# This file is distributed under the same license as the minipep package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: minipep\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-12 17:12-0300\n"
+"PO-Revision-Date: 2026-02-12 17:12-0300\n"
+"Last-Translator: \n"
+"Language-Team: pt-BR\n"
+"Language: pt_BR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: core/templates/core/_header.html core/templates/core/dashboard.html
+msgid "Dashboard"
+msgstr "Painel"
+
+#: core/templates/core/_header.html core/templates/core/clinic_list.html
+msgid "Clinics"
+msgstr "Clínicas"
+
+#: core/templates/core/_header.html core/templates/core/schedule_list.html
+msgid "Schedules"
+msgstr "Agendas"
+
+#: core/templates/core/_header.html
+msgid "Sign out"
+msgstr "Sair"
+
+#: core/templates/core/clinic_list.html
+msgid "Add clinic"
+msgstr "Adicionar clínica"
+
+#: core/templates/core/clinic_list.html
+msgid "Name"
+msgstr "Nome"
+
+#: core/templates/core/clinic_list.html
+msgid "CNPJ"
+msgstr "CNPJ"
+
+#: core/templates/core/clinic_list.html
+msgid "Phone"
+msgstr "Telefone"
+
+#: core/templates/core/clinic_list.html core/templates/core/login.html
+msgid "Email"
+msgstr "E-mail"
+
+#: core/templates/core/clinic_list.html
+msgid "City/State"
+msgstr "Cidade/UF"
+
+#: core/templates/core/clinic_list.html core/templates/core/schedule_list.html
+msgid "Actions"
+msgstr "Ações"
+
+#: core/templates/core/clinic_list.html core/templates/core/schedule_list.html
+msgid "Edit"
+msgstr "Editar"
+
+#: core/templates/core/clinic_list.html core/templates/core/schedule_confirm_delete.html core/templates/core/schedule_list.html
+msgid "Delete"
+msgstr "Excluir"
+
+#: core/templates/core/clinic_list.html
+msgid "No clinics."
+msgstr "Nenhuma clínica cadastrada."
+
+#: core/templates/core/dashboard.html
+msgid "Today's Encounters"
+msgstr "Consultas de Hoje"
+
+#: core/templates/core/dashboard.html core/templates/core/schedule_list.html
+msgid "Time"
+msgstr "Horário"
+
+#: core/templates/core/dashboard.html
+msgid "Patient"
+msgstr "Paciente"
+
+#: core/templates/core/dashboard.html core/templates/core/schedule_list.html
+msgid "Doctor"
+msgstr "Médico"
+
+#: core/templates/core/dashboard.html core/templates/core/schedule_list.html
+msgid "Reason"
+msgstr "Motivo"
+
+#: core/templates/core/dashboard.html
+msgid "Status"
+msgstr "Status"
+
+#: core/templates/core/dashboard.html
+msgid "Action"
+msgstr "Ação"
+
+#: core/templates/core/dashboard.html
+msgid "Scheduled"
+msgstr "Agendado"
+
+#: core/templates/core/dashboard.html
+msgid "Arrived"
+msgstr "Chegou"
+
+#: core/templates/core/dashboard.html
+msgid "In Progress"
+msgstr "Em Atendimento"
+
+#: core/templates/core/dashboard.html
+msgid "Completed"
+msgstr "Concluído"
+
+#: core/templates/core/dashboard.html
+msgid "Cancelled"
+msgstr "Cancelado"
+
+#: core/templates/core/dashboard.html
+msgid "Mark Arrived"
+msgstr "Marcar Chegada"
+
+#: core/templates/core/dashboard.html
+msgid "No encounters scheduled for today."
+msgstr "Nenhuma consulta agendada para hoje."
+
+#: core/templates/core/login.html
+msgid "Sign in"
+msgstr "Entrar"
+
+#: core/templates/core/login.html
+msgid "Electronic Health Records for small clinics."
+msgstr "Prontuário Eletrônico para pequenas clínicas."
+
+#: core/templates/core/login.html
+msgid "Sign in to your account"
+msgstr "Acesse sua conta"
+
+#: core/templates/core/login.html
+msgid "Password"
+msgstr "Senha"
+
+#: core/templates/core/schedule_confirm_delete.html
+msgid "Are you sure you want to delete the following?"
+msgstr "Tem certeza que deseja excluir o item abaixo?"
+
+#: core/templates/core/schedule_confirm_delete.html core/templates/core/schedule_form.html
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: core/templates/core/schedule_form.html
+msgid "Save"
+msgstr "Salvar"
+
+#: core/templates/core/schedule_list.html
+msgid "Clinic"
+msgstr "Clínica"
+
+#: core/templates/core/schedule_list.html
+msgid "All clinics"
+msgstr "Todas as clínicas"
+
+#: core/templates/core/schedule_list.html
+msgid "All doctors"
+msgstr "Todos os médicos"
+
+#: core/templates/core/schedule_list.html
+msgid "Recurring Schedules"
+msgstr "Agendas Recorrentes"
+
+#: core/templates/core/schedule_list.html
+msgid "Add"
+msgstr "Adicionar"
+
+#: core/templates/core/schedule_list.html
+msgid "Weekday"
+msgstr "Dia da Semana"
+
+#: core/templates/core/schedule_list.html
+msgid "Interval"
+msgstr "Intervalo"
+
+#: core/templates/core/schedule_list.html
+msgid "Slot"
+msgstr "Duração"
+
+#: core/templates/core/schedule_list.html
+msgid "Start date"
+msgstr "Data de início"
+
+#: core/templates/core/schedule_list.html
+#, python-format
+msgid "Every %(weeks)s wk"
+msgstr "A cada %(weeks)s sem"
+
+#: core/templates/core/schedule_list.html
+msgid "No recurring schedules."
+msgstr "Nenhuma agenda recorrente."
+
+#: core/templates/core/schedule_list.html
+msgid "Closed Windows"
+msgstr "Bloqueios de Horário"
+
+#: core/templates/core/schedule_list.html
+msgid "Date"
+msgstr "Data"
+
+#: core/templates/core/schedule_list.html
+msgid "Type"
+msgstr "Tipo"
+
+#: core/templates/core/schedule_list.html
+msgid "Full day"
+msgstr "Dia inteiro"
+
+#: core/templates/core/schedule_list.html
+msgid "Partial"
+msgstr "Parcial"
+
+#: core/templates/core/schedule_list.html
+msgid "No closed windows."
+msgstr "Nenhum bloqueio de horário."
+
+#: core/templates/core/schedule_list.html
+msgid "Occasional Schedules"
+msgstr "Agendas Avulsas"
+
+#: core/templates/core/schedule_list.html
+msgid "No occasional schedules."
+msgstr "Nenhuma agenda avulsa."
+
+#: core/views.py
+msgid "Edit Clinic"
+msgstr "Editar Clínica"
+
+#: core/views.py
+msgid "New Clinic"
+msgstr "Nova Clínica"
+
+#: core/views.py
+msgid "Delete Clinic"
+msgstr "Excluir Clínica"
+
+#: core/views.py
+msgid "Edit Recurring Schedule"
+msgstr "Editar Agenda Recorrente"
+
+#: core/views.py
+msgid "New Recurring Schedule"
+msgstr "Nova Agenda Recorrente"
+
+#: core/views.py
+msgid "Edit Closed Window"
+msgstr "Editar Bloqueio de Horário"
+
+#: core/views.py
+msgid "New Closed Window"
+msgstr "Novo Bloqueio de Horário"
+
+#: core/views.py
+msgid "Edit Occasional Schedule"
+msgstr "Editar Agenda Avulsa"
+
+#: core/views.py
+msgid "New Occasional Schedule"
+msgstr "Nova Agenda Avulsa"
+
+#: core/views.py
+msgid "Delete Recurring Schedule"
+msgstr "Excluir Agenda Recorrente"
+
+#: core/views.py
+msgid "Delete Closed Window"
+msgstr "Excluir Bloqueio de Horário"
+
+#: core/views.py
+msgid "Delete Occasional Schedule"
+msgstr "Excluir Agenda Avulsa"

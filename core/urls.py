@@ -5,17 +5,45 @@ from . import views
 urlpatterns = [
     path("", views.dashboard, name="dashboard"),
     path("login/", views.login_view, name="login"),
+    path("select-clinic/", views.select_clinic, name="select-clinic"),
     path("logout/", views.logout_view, name="logout"),
+    # Encounters
+    path("encounters/new/", views.encounter_create, name="encounter-create"),
     path(
         "encounters/<int:pk>/mark-arrived/",
         views.encounter_mark_arrived,
         name="encounter-mark-arrived",
+    ),
+    path(
+        "encounters/<int:pk>/start/",
+        views.encounter_start,
+        name="encounter-start",
+    ),
+    path(
+        "encounters/<int:pk>/complete/",
+        views.encounter_complete,
+        name="encounter-complete",
+    ),
+    path(
+        "encounters/<int:pk>/cancel/",
+        views.encounter_cancel,
+        name="encounter-cancel",
     ),
     # Clinics
     path("clinics/", views.clinic_list, name="clinic-list"),
     path("clinics/new/", views.clinic_form, name="clinic-create"),
     path("clinics/<int:pk>/edit/", views.clinic_form, name="clinic-edit"),
     path("clinics/<int:pk>/delete/", views.clinic_delete, name="clinic-delete"),
+    # Patients
+    path("patients/", views.patient_list, name="patient-list"),
+    path("patients/new/", views.patient_form, name="patient-create"),
+    path("patients/<int:pk>/edit/", views.patient_form, name="patient-edit"),
+    path("patients/<int:pk>/delete/", views.patient_delete, name="patient-delete"),
+    # Doctors
+    path("doctors/", views.doctor_list, name="doctor-list"),
+    path("doctors/new/", views.doctor_form, name="doctor-create"),
+    path("doctors/<int:pk>/edit/", views.doctor_form, name="doctor-edit"),
+    path("doctors/<int:pk>/delete/", views.doctor_delete, name="doctor-delete"),
     # Schedules
     path("schedules/", views.schedule_list, name="schedule-list"),
     path(

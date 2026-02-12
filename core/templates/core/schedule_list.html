@@ -9,23 +9,11 @@
 
     <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         <!-- Filters -->
-        <form method="get" class="mb-6 flex flex-wrap items-end gap-4">
-            {% if clinics|length > 1 %}
+        <form method="get" class="mb-8 flex flex-wrap items-end gap-4">
             <div>
-                <label for="clinic-filter" class="block text-sm font-medium text-gray-700 mb-1">{% trans "Filter by clinic" %}</label>
-                <select id="clinic-filter" name="clinic" onchange="this.form.submit()"
-                        class="block w-full max-w-xs rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 sm:text-sm">
-                    <option value="">{% trans "All clinics" %}</option>
-                    {% for c in clinics %}
-                    <option value="{{ c.pk }}" {% if selected_clinic and selected_clinic.pk == c.pk %}selected{% endif %}>{{ c }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            {% endif %}
-            <div>
-                <label for="doctor-filter" class="block text-sm font-medium text-gray-700 mb-1">{% trans "Filter by doctor" %}</label>
+                <label for="doctor-filter" class="block text-xs font-medium text-gray-500 mb-1">{% trans "Doctor" %}</label>
                 <select id="doctor-filter" name="doctor" onchange="this.form.submit()"
-                        class="block w-full max-w-xs rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 sm:text-sm">
+                        class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 sm:text-sm">
                     <option value="">{% trans "All doctors" %}</option>
                     {% for doc in doctors %}
                     <option value="{{ doc.pk }}" {% if selected_doctor and selected_doctor.pk == doc.pk %}selected{% endif %}>{{ doc }}</option>
@@ -37,35 +25,35 @@
         <!-- Recurring Schedules -->
         <section class="mb-10">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-xl font-semibold text-gray-900">{% trans "Recurring Schedules" %}</h2>
-                <a href="{% url 'recurring-schedule-create' %}" class="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition">{% trans "Add" %}</a>
+                <h2 class="text-lg font-semibold text-gray-900">{% trans "Recurring Schedules" %}</h2>
+                <a href="{% url 'recurring-schedule-create' %}" class="rounded-lg bg-violet-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-violet-500 transition">{% trans "Add" %}</a>
             </div>
             {% if recurring_schedules %}
-            <div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+            <div class="overflow-hidden rounded-lg border border-gray-200 bg-white">
                 <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">{% trans "Doctor" %}</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">{% trans "Weekday" %}</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">{% trans "Time" %}</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">{% trans "Interval" %}</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">{% trans "Slot" %}</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">{% trans "Start date" %}</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">{% trans "Actions" %}</th>
+                    <thead>
+                        <tr class="bg-gray-50/60">
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{% trans "Doctor" %}</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{% trans "Weekday" %}</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{% trans "Time" %}</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{% trans "Interval" %}</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{% trans "Slot" %}</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{% trans "Start date" %}</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{% trans "Actions" %}</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200">
+                    <tbody class="divide-y divide-gray-100">
                         {% for s in recurring_schedules %}
-                        <tr>
-                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{{ s.doctor }}</td>
-                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{{ s.get_weekday_display }}</td>
-                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600">{{ s.start_time|time:"H:i" }}–{{ s.end_time|time:"H:i" }}</td>
-                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600">{% blocktrans with weeks=s.interval_weeks %}Every {{ weeks }} wk{% endblocktrans %}</td>
-                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600">{{ s.slot_duration }} min</td>
-                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600">{{ s.start_date }}</td>
+                        <tr class="hover:bg-gray-50/50 transition-colors">
+                            <td class="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{{ s.doctor }}</td>
+                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-700">{{ s.get_weekday_display }}</td>
+                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-500">{{ s.start_time|time:"H:i" }}–{{ s.end_time|time:"H:i" }}</td>
+                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-500">{% blocktrans with weeks=s.interval_weeks %}Every {{ weeks }} wk{% endblocktrans %}</td>
+                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-500">{{ s.slot_duration }} min</td>
+                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-500">{{ s.start_date }}</td>
                             <td class="whitespace-nowrap px-4 py-3 text-sm">
-                                <a href="{% url 'recurring-schedule-edit' s.pk %}" class="text-indigo-600 hover:text-indigo-500 font-medium">{% trans "Edit" %}</a>
-                                <a href="{% url 'recurring-schedule-delete' s.pk %}" class="ml-3 text-red-600 hover:text-red-500 font-medium">{% trans "Delete" %}</a>
+                                <a href="{% url 'recurring-schedule-edit' s.pk %}" class="text-violet-600 hover:text-violet-500 font-medium">{% trans "Edit" %}</a>
+                                <a href="{% url 'recurring-schedule-delete' s.pk %}" class="ml-4 text-gray-400 hover:text-red-500 font-medium">{% trans "Delete" %}</a>
                             </td>
                         </tr>
                         {% endfor %}
@@ -73,8 +61,8 @@
                 </table>
             </div>
             {% else %}
-            <div class="rounded-lg border border-gray-200 bg-white px-6 py-12 text-center shadow-sm">
-                <p class="text-sm text-gray-500">{% trans "No recurring schedules." %}</p>
+            <div class="rounded-lg border border-dashed border-gray-300 bg-white px-6 py-12 text-center">
+                <p class="text-sm text-gray-400">{% trans "No recurring schedules." %}</p>
             </div>
             {% endif %}
         </section>
@@ -82,33 +70,33 @@
         <!-- Closed Windows -->
         <section class="mb-10">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-xl font-semibold text-gray-900">{% trans "Closed Windows" %}</h2>
-                <a href="{% url 'closed-window-create' %}" class="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition">{% trans "Add" %}</a>
+                <h2 class="text-lg font-semibold text-gray-900">{% trans "Closed Windows" %}</h2>
+                <a href="{% url 'closed-window-create' %}" class="rounded-lg bg-violet-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-violet-500 transition">{% trans "Add" %}</a>
             </div>
             {% if closed_windows %}
-            <div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+            <div class="overflow-hidden rounded-lg border border-gray-200 bg-white">
                 <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">{% trans "Doctor" %}</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">{% trans "Date" %}</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">{% trans "Type" %}</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">{% trans "Time" %}</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">{% trans "Reason" %}</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">{% trans "Actions" %}</th>
+                    <thead>
+                        <tr class="bg-gray-50/60">
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{% trans "Doctor" %}</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{% trans "Date" %}</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{% trans "Type" %}</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{% trans "Time" %}</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{% trans "Reason" %}</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{% trans "Actions" %}</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200">
+                    <tbody class="divide-y divide-gray-100">
                         {% for cw in closed_windows %}
-                        <tr>
-                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{{ cw.doctor }}</td>
-                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{{ cw.date }}</td>
-                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600">{% if cw.is_full_day %}{% trans "Full day" %}{% else %}{% trans "Partial" %}{% endif %}</td>
-                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600">{% if not cw.is_full_day %}{{ cw.start_time|time:"H:i" }}–{{ cw.end_time|time:"H:i" }}{% else %}—{% endif %}</td>
-                            <td class="px-4 py-3 text-sm text-gray-600 max-w-xs truncate">{{ cw.reason|default:"—" }}</td>
+                        <tr class="hover:bg-gray-50/50 transition-colors">
+                            <td class="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{{ cw.doctor }}</td>
+                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-700">{{ cw.date }}</td>
+                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-500">{% if cw.is_full_day %}{% trans "Full day" %}{% else %}{% trans "Partial" %}{% endif %}</td>
+                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-500">{% if not cw.is_full_day %}{{ cw.start_time|time:"H:i" }}–{{ cw.end_time|time:"H:i" }}{% else %}—{% endif %}</td>
+                            <td class="px-4 py-3 text-sm text-gray-500 max-w-xs truncate">{{ cw.reason|default:"—" }}</td>
                             <td class="whitespace-nowrap px-4 py-3 text-sm">
-                                <a href="{% url 'closed-window-edit' cw.pk %}" class="text-indigo-600 hover:text-indigo-500 font-medium">{% trans "Edit" %}</a>
-                                <a href="{% url 'closed-window-delete' cw.pk %}" class="ml-3 text-red-600 hover:text-red-500 font-medium">{% trans "Delete" %}</a>
+                                <a href="{% url 'closed-window-edit' cw.pk %}" class="text-violet-600 hover:text-violet-500 font-medium">{% trans "Edit" %}</a>
+                                <a href="{% url 'closed-window-delete' cw.pk %}" class="ml-4 text-gray-400 hover:text-red-500 font-medium">{% trans "Delete" %}</a>
                             </td>
                         </tr>
                         {% endfor %}
@@ -116,8 +104,8 @@
                 </table>
             </div>
             {% else %}
-            <div class="rounded-lg border border-gray-200 bg-white px-6 py-12 text-center shadow-sm">
-                <p class="text-sm text-gray-500">{% trans "No closed windows." %}</p>
+            <div class="rounded-lg border border-dashed border-gray-300 bg-white px-6 py-12 text-center">
+                <p class="text-sm text-gray-400">{% trans "No closed windows." %}</p>
             </div>
             {% endif %}
         </section>
@@ -125,31 +113,31 @@
         <!-- Occasional Schedules -->
         <section class="mb-10">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-xl font-semibold text-gray-900">{% trans "Occasional Schedules" %}</h2>
-                <a href="{% url 'occasional-schedule-create' %}" class="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition">{% trans "Add" %}</a>
+                <h2 class="text-lg font-semibold text-gray-900">{% trans "Occasional Schedules" %}</h2>
+                <a href="{% url 'occasional-schedule-create' %}" class="rounded-lg bg-violet-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-violet-500 transition">{% trans "Add" %}</a>
             </div>
             {% if occasional_schedules %}
-            <div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+            <div class="overflow-hidden rounded-lg border border-gray-200 bg-white">
                 <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">{% trans "Doctor" %}</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">{% trans "Date" %}</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">{% trans "Time" %}</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">{% trans "Slot" %}</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">{% trans "Actions" %}</th>
+                    <thead>
+                        <tr class="bg-gray-50/60">
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{% trans "Doctor" %}</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{% trans "Date" %}</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{% trans "Time" %}</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{% trans "Slot" %}</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{% trans "Actions" %}</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200">
+                    <tbody class="divide-y divide-gray-100">
                         {% for s in occasional_schedules %}
-                        <tr>
-                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{{ s.doctor }}</td>
-                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{{ s.date }}</td>
-                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600">{{ s.start_time|time:"H:i" }}–{{ s.end_time|time:"H:i" }}</td>
-                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600">{{ s.slot_duration }} min</td>
+                        <tr class="hover:bg-gray-50/50 transition-colors">
+                            <td class="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{{ s.doctor }}</td>
+                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-700">{{ s.date }}</td>
+                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-500">{{ s.start_time|time:"H:i" }}–{{ s.end_time|time:"H:i" }}</td>
+                            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-500">{{ s.slot_duration }} min</td>
                             <td class="whitespace-nowrap px-4 py-3 text-sm">
-                                <a href="{% url 'occasional-schedule-edit' s.pk %}" class="text-indigo-600 hover:text-indigo-500 font-medium">{% trans "Edit" %}</a>
-                                <a href="{% url 'occasional-schedule-delete' s.pk %}" class="ml-3 text-red-600 hover:text-red-500 font-medium">{% trans "Delete" %}</a>
+                                <a href="{% url 'occasional-schedule-edit' s.pk %}" class="text-violet-600 hover:text-violet-500 font-medium">{% trans "Edit" %}</a>
+                                <a href="{% url 'occasional-schedule-delete' s.pk %}" class="ml-4 text-gray-400 hover:text-red-500 font-medium">{% trans "Delete" %}</a>
                             </td>
                         </tr>
                         {% endfor %}
@@ -157,8 +145,8 @@
                 </table>
             </div>
             {% else %}
-            <div class="rounded-lg border border-gray-200 bg-white px-6 py-12 text-center shadow-sm">
-                <p class="text-sm text-gray-500">{% trans "No occasional schedules." %}</p>
+            <div class="rounded-lg border border-dashed border-gray-300 bg-white px-6 py-12 text-center">
+                <p class="text-sm text-gray-400">{% trans "No occasional schedules." %}</p>
             </div>
             {% endif %}
         </section>
