@@ -166,6 +166,7 @@ class PatientForm(forms.ModelForm):
         fields = [
             "first_name",
             "last_name",
+            "cpf",
             "date_of_birth",
             "sex",
             "phone",
@@ -191,28 +192,59 @@ class PatientForm(forms.ModelForm):
         )
 
 
-class EncounterForm(forms.ModelForm):
-    class Meta:
-        model = Encounter
-        fields = ["patient", "doctor", "scheduled_at", "reason"]
+class BookingPickDoctorDateForm(forms.Form):
+    doctor = forms.ModelChoiceField(queryset=Doctor.objects.none(), label=_("Doctor"))
+    date = forms.DateField(label=_("Date"), widget=forms.DateInput(attrs={"type": "date", "class": INPUT_CSS}))
 
     def __init__(self, *args, clinic=None, **kwargs):
         super().__init__(*args, **kwargs)
         if clinic:
-            self.fields["doctor"].queryset = Doctor.objects.filter(clinic=clinic)
+            self.fields["doctor"].queryset = Doctor.objects.filter(clinic=clinic).select_related("user")
+        self.fields["doctor"].widget.attrs["class"] = SELECT_CSS
+        self.fields["date"].widget.attrs["class"] = INPUT_CSS
+
+
+class BookingForm(forms.Form):
+    patient = forms.ModelChoiceField(queryset=Patient.objects.none(), label=_("Patient"))
+    slot = forms.ChoiceField(choices=[], label=_("Time Slot"))
+    reason = forms.CharField(widget=forms.Textarea(attrs={"rows": 3}), label=_("Reason"))
+
+    def __init__(self, *args, slots=None, **kwargs):
+        super().__init__(*args, **kwargs)
         self.fields["patient"].queryset = Patient.objects.order_by("last_name", "first_name")
-        for name, field in self.fields.items():
+        if slots:
+            self.fields["slot"].choices = [(s.strftime("%H:%M"), s.strftime("%H:%M")) for s in slots]
+        for field in self.fields.values():
             widget = field.widget
             if isinstance(widget, forms.Select):
                 widget.attrs["class"] = SELECT_CSS
             elif isinstance(widget, forms.Textarea):
-                widget.attrs["class"] = INPUT_CSS
+                widget.attrs["class"] = TEXTAREA_CSS
                 widget.attrs["rows"] = 3
             else:
                 widget.attrs["class"] = INPUT_CSS
-        self.fields["scheduled_at"].widget = forms.DateTimeInput(
-            attrs={"type": "datetime-local", "class": INPUT_CSS}
-        )
+
+
+TEXTAREA_CSS = (
+    "block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 "
+    "shadow-sm placeholder-gray-400 focus:border-violet-500 focus:ring-1 "
+    "focus:ring-violet-500 sm:text-sm"
+)
+
+
+class EncounterDetailForm(forms.ModelForm):
+    class Meta:
+        model = Encounter
+        fields = ["anamnesis", "prescription"]
+        labels = {
+            "anamnesis": _("Anamnesis"),
+            "prescription": _("Prescription"),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget = forms.Textarea(attrs={"class": TEXTAREA_CSS, "rows": 6})
 
 
 class OccasionalScheduleForm(forms.ModelForm):

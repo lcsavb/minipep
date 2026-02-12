@@ -32,7 +32,7 @@
                     {% for enc in encounters %}
                     <tr class="hover:bg-gray-50/50 transition-colors">
                         <td class="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{{ enc.scheduled_at|time:"H:i" }}</td>
-                        <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-700">{{ enc.patient }}</td>
+                        <td class="whitespace-nowrap px-4 py-3 text-sm"><a href="{% url 'encounter-detail' enc.pk %}" class="text-violet-600 hover:text-violet-500 font-medium">{{ enc.patient }}</a></td>
                         <td class="whitespace-nowrap px-4 py-3 text-sm"><a href="{% url 'schedule-list' %}?doctor={{ enc.doctor.pk }}" class="text-violet-600 hover:text-violet-500 font-medium">{{ enc.doctor }}</a></td>
                         <td class="px-4 py-3 text-sm text-gray-500 max-w-xs truncate">{{ enc.reason }}</td>
                         <td class="whitespace-nowrap px-4 py-3 text-sm">

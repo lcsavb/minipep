@@ -1,0 +1,81 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Book Appointment" %} - minipep{% endblock %}
+
+{% block content %}
+<div class="min-h-screen">
+    {% include "core/_header.html" %}
+
+    <main class="mx-auto max-w-xl px-4 sm:px-6 lg:px-8 py-8">
+        <h2 class="text-lg font-semibold text-gray-900 mb-6">{% trans "Book Appointment" %}</h2>
+
+        <!-- Step 1: Pick doctor + date -->
+        <div class="rounded-lg border border-gray-200 bg-white p-6 mb-6">
+            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">{% trans "1. Choose Doctor & Date" %}</h3>
+            <form method="get" class="space-y-4">
+                {% for field in pick_form %}
+                <div>
+                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}</label>
+                    {{ field }}
+                    {% for error in field.errors %}
+                    <p class="mt-1 text-xs text-red-600">{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+                <button type="submit"
+                        class="rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-500 transition">
+                    {% trans "Find Slots" %}
+                </button>
+            </form>
+        </div>
+
+        {% if doctor and target_date %}
+        <!-- Step 2: Available slots -->
+        <div class="rounded-lg border border-gray-200 bg-white p-6">
+            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
+                {% trans "2. Book a Slot" %} — {{ doctor }}, {{ target_date }}
+            </h3>
+
+            {% if slots %}
+            <form method="post" action="?doctor={{ doctor.pk }}&date={{ target_date|date:'Y-m-d' }}" class="space-y-5">
+                {% csrf_token %}
+                {% for field in booking_form %}
+                <div>
+                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                    <p class="mt-1 text-xs text-gray-400">{{ field.help_text }}</p>
+                    {% endif %}
+                    {% for error in field.errors %}
+                    <p class="mt-1 text-xs text-red-600">{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+                <div class="flex items-center gap-3 pt-3">
+                    <button type="submit"
+                            class="rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-500 transition">
+                        {% trans "Book" %}
+                    </button>
+                    <a href="{% url 'dashboard' %}"
+                       class="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition">
+                        {% trans "Cancel" %}
+                    </a>
+                </div>
+            </form>
+            {% else %}
+            <div class="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-6 py-10 text-center">
+                <p class="text-sm text-gray-400">{% trans "No available slots for this date." %}</p>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if not doctor %}
+        <div class="text-center">
+            <a href="{% url 'dashboard' %}" class="text-sm font-medium text-gray-600 hover:text-gray-900 transition">{% trans "Back to Dashboard" %}</a>
+        </div>
+        {% endif %}
+    </main>
+</div>
+{% endblock %}

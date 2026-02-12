@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
 from .models import (
+    AuditLog,
     Clinic,
     ClosedWindow,
     Doctor,
@@ -73,3 +74,11 @@ class OccasionalScheduleAdmin(admin.ModelAdmin):
     list_display = ["doctor", "date", "start_time", "end_time", "slot_duration"]
     list_filter = ["doctor", "date"]
     ordering = ["doctor", "date", "start_time"]
+
+
+@admin.register(AuditLog)
+class AuditLogAdmin(admin.ModelAdmin):
+    list_display = ["timestamp", "user", "action", "model_name", "object_id", "description"]
+    list_filter = ["action", "model_name"]
+    search_fields = ["description", "user__email"]
+    readonly_fields = ["user", "action", "model_name", "object_id", "description", "timestamp"]

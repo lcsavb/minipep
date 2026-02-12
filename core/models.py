@@ -69,6 +69,7 @@ class Patient(models.Model):
 
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
+    cpf = models.CharField(max_length=14, unique=True, blank=True, null=True)
     date_of_birth = models.DateField()
     sex = models.CharField(max_length=1, choices=Sex.choices)
     phone = models.CharField(max_length=20, blank=True)
@@ -213,3 +214,26 @@ class OccasionalSchedule(models.Model):
 
     class Meta:
         ordering = ["doctor", "date", "start_time"]
+
+
+class AuditLog(models.Model):
+    class Action(models.TextChoices):
+        CREATE = "create", "Create"
+        UPDATE = "update", "Update"
+        DELETE = "delete", "Delete"
+        STATUS_CHANGE = "status_change", "Status Change"
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="audit_logs"
+    )
+    action = models.CharField(max_length=20, choices=Action.choices)
+    model_name = models.CharField(max_length=100)
+    object_id = models.PositiveIntegerField()
+    description = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.timestamp:%Y-%m-%d %H:%M} — {self.user} — {self.action} {self.model_name} #{self.object_id}"
+
+    class Meta:
+        ordering = ["-timestamp"]

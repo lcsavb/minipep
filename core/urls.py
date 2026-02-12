@@ -8,6 +8,8 @@ urlpatterns = [
     path("select-clinic/", views.select_clinic, name="select-clinic"),
     path("logout/", views.logout_view, name="logout"),
     # Encounters
+    path("encounters/<int:pk>/", views.encounter_detail, name="encounter-detail"),
+    path("encounters/<int:pk>/print/<str:doc_type>/", views.encounter_print, name="encounter-print"),
     path("encounters/new/", views.encounter_create, name="encounter-create"),
     path(
         "encounters/<int:pk>/mark-arrived/",
@@ -38,6 +40,7 @@ urlpatterns = [
     path("patients/", views.patient_list, name="patient-list"),
     path("patients/new/", views.patient_form, name="patient-create"),
     path("patients/<int:pk>/edit/", views.patient_form, name="patient-edit"),
+    path("patients/<int:pk>/", views.patient_detail, name="patient-detail"),
     path("patients/<int:pk>/delete/", views.patient_delete, name="patient-delete"),
     # Doctors
     path("doctors/", views.doctor_list, name="doctor-list"),

@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: minipep\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-12 17:12-0300\n"
-"PO-Revision-Date: 2026-02-12 17:12-0300\n"
+"POT-Creation-Date: 2026-02-12 18:00-0300\n"
+"PO-Revision-Date: 2026-02-12 18:00-0300\n"
 "Last-Translator: \n"
 "Language-Team: pt-BR\n"
 "Language: pt_BR\n"
@@ -16,267 +16,384 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: core/templates/core/_header.html core/templates/core/dashboard.html
+# --- Header / Nav ---
+
 msgid "Dashboard"
 msgstr "Painel"
 
-#: core/templates/core/_header.html core/templates/core/clinic_list.html
 msgid "Clinics"
 msgstr "Clínicas"
 
-#: core/templates/core/_header.html core/templates/core/schedule_list.html
+msgid "Patients"
+msgstr "Pacientes"
+
+msgid "Doctors"
+msgstr "Médicos"
+
 msgid "Schedules"
 msgstr "Agendas"
 
-#: core/templates/core/_header.html
+msgid "Select clinic…"
+msgstr "Selecionar clínica…"
+
 msgid "Sign out"
 msgstr "Sair"
 
-#: core/templates/core/clinic_list.html
-msgid "Add clinic"
-msgstr "Adicionar clínica"
+# --- Common ---
 
-#: core/templates/core/clinic_list.html
 msgid "Name"
 msgstr "Nome"
 
-#: core/templates/core/clinic_list.html
-msgid "CNPJ"
-msgstr "CNPJ"
-
-#: core/templates/core/clinic_list.html
-msgid "Phone"
-msgstr "Telefone"
-
-#: core/templates/core/clinic_list.html core/templates/core/login.html
 msgid "Email"
 msgstr "E-mail"
 
-#: core/templates/core/clinic_list.html
-msgid "City/State"
-msgstr "Cidade/UF"
+msgid "Phone"
+msgstr "Telefone"
 
-#: core/templates/core/clinic_list.html core/templates/core/schedule_list.html
 msgid "Actions"
 msgstr "Ações"
 
-#: core/templates/core/clinic_list.html core/templates/core/schedule_list.html
 msgid "Edit"
 msgstr "Editar"
 
-#: core/templates/core/clinic_list.html core/templates/core/schedule_confirm_delete.html core/templates/core/schedule_list.html
 msgid "Delete"
 msgstr "Excluir"
 
-#: core/templates/core/clinic_list.html
-msgid "No clinics."
-msgstr "Nenhuma clínica cadastrada."
-
-#: core/templates/core/dashboard.html
-msgid "Today's Encounters"
-msgstr "Consultas de Hoje"
-
-#: core/templates/core/dashboard.html core/templates/core/schedule_list.html
-msgid "Time"
-msgstr "Horário"
-
-#: core/templates/core/dashboard.html
-msgid "Patient"
-msgstr "Paciente"
-
-#: core/templates/core/dashboard.html core/templates/core/schedule_list.html
-msgid "Doctor"
-msgstr "Médico"
-
-#: core/templates/core/dashboard.html core/templates/core/schedule_list.html
-msgid "Reason"
-msgstr "Motivo"
-
-#: core/templates/core/dashboard.html
-msgid "Status"
-msgstr "Status"
-
-#: core/templates/core/dashboard.html
-msgid "Action"
-msgstr "Ação"
-
-#: core/templates/core/dashboard.html
-msgid "Scheduled"
-msgstr "Agendado"
-
-#: core/templates/core/dashboard.html
-msgid "Arrived"
-msgstr "Chegou"
-
-#: core/templates/core/dashboard.html
-msgid "In Progress"
-msgstr "Em Atendimento"
-
-#: core/templates/core/dashboard.html
-msgid "Completed"
-msgstr "Concluído"
-
-#: core/templates/core/dashboard.html
-msgid "Cancelled"
-msgstr "Cancelado"
-
-#: core/templates/core/dashboard.html
-msgid "Mark Arrived"
-msgstr "Marcar Chegada"
-
-#: core/templates/core/dashboard.html
-msgid "No encounters scheduled for today."
-msgstr "Nenhuma consulta agendada para hoje."
-
-#: core/templates/core/login.html
-msgid "Sign in"
-msgstr "Entrar"
-
-#: core/templates/core/login.html
-msgid "Electronic Health Records for small clinics."
-msgstr "Prontuário Eletrônico para pequenas clínicas."
-
-#: core/templates/core/login.html
-msgid "Sign in to your account"
-msgstr "Acesse sua conta"
-
-#: core/templates/core/login.html
-msgid "Password"
-msgstr "Senha"
-
-#: core/templates/core/schedule_confirm_delete.html
-msgid "Are you sure you want to delete the following?"
-msgstr "Tem certeza que deseja excluir o item abaixo?"
-
-#: core/templates/core/schedule_confirm_delete.html core/templates/core/schedule_form.html
-msgid "Cancel"
-msgstr "Cancelar"
-
-#: core/templates/core/schedule_form.html
 msgid "Save"
 msgstr "Salvar"
 
-#: core/templates/core/schedule_list.html
-msgid "Clinic"
-msgstr "Clínica"
+msgid "Cancel"
+msgstr "Cancelar"
 
-#: core/templates/core/schedule_list.html
-msgid "All clinics"
-msgstr "Todas as clínicas"
-
-#: core/templates/core/schedule_list.html
-msgid "All doctors"
-msgstr "Todos os médicos"
-
-#: core/templates/core/schedule_list.html
-msgid "Recurring Schedules"
-msgstr "Agendas Recorrentes"
-
-#: core/templates/core/schedule_list.html
 msgid "Add"
 msgstr "Adicionar"
 
-#: core/templates/core/schedule_list.html
+msgid "Search"
+msgstr "Buscar"
+
+msgid "Clear"
+msgstr "Limpar"
+
+msgid "Back to Dashboard"
+msgstr "Voltar ao Painel"
+
+# --- Auth / Login ---
+
+msgid "Sign in"
+msgstr "Entrar"
+
+msgid "Electronic Health Records for small clinics."
+msgstr "Prontuário Eletrônico para pequenas clínicas."
+
+msgid "Sign in to your account"
+msgstr "Acesse sua conta"
+
+msgid "Password"
+msgstr "Senha"
+
+# --- Clinic ---
+
+msgid "Add clinic"
+msgstr "Adicionar clínica"
+
+msgid "CNPJ"
+msgstr "CNPJ"
+
+msgid "City/State"
+msgstr "Cidade/UF"
+
+msgid "No clinics."
+msgstr "Nenhuma clínica cadastrada."
+
+msgid "Edit Clinic"
+msgstr "Editar Clínica"
+
+msgid "New Clinic"
+msgstr "Nova Clínica"
+
+msgid "Delete Clinic"
+msgstr "Excluir Clínica"
+
+# --- Doctor ---
+
+msgid "First name"
+msgstr "Nome"
+
+msgid "Last name"
+msgstr "Sobrenome"
+
+msgid "Leave blank to keep current password."
+msgstr "Deixe em branco para manter a senha atual."
+
+msgid "Specialty"
+msgstr "Especialidade"
+
+msgid "CRM"
+msgstr "CRM"
+
+msgid "A user with this email already exists."
+msgstr "Já existe um usuário com este e-mail."
+
+msgid "A doctor with this CRM already exists."
+msgstr "Já existe um médico com este CRM."
+
+msgid "Add doctor"
+msgstr "Adicionar médico"
+
+msgid "No doctors."
+msgstr "Nenhum médico cadastrado."
+
+msgid "Edit Doctor"
+msgstr "Editar Médico"
+
+msgid "New Doctor"
+msgstr "Novo Médico"
+
+msgid "Delete Doctor"
+msgstr "Excluir Médico"
+
+# --- Patient ---
+
+msgid "CPF"
+msgstr "CPF"
+
+msgid "Date of birth"
+msgstr "Data de nascimento"
+
+msgid "Sex"
+msgstr "Sexo"
+
+msgid "Address"
+msgstr "Endereço"
+
+msgid "Add patient"
+msgstr "Adicionar paciente"
+
+msgid "Search by name or CPF…"
+msgstr "Buscar por nome ou CPF…"
+
+msgid "No patients."
+msgstr "Nenhum paciente cadastrado."
+
+msgid "No patients match your search."
+msgstr "Nenhum paciente encontrado."
+
+msgid "Edit Patient"
+msgstr "Editar Paciente"
+
+msgid "New Patient"
+msgstr "Novo Paciente"
+
+msgid "Delete Patient"
+msgstr "Excluir Paciente"
+
+msgid "Patient Information"
+msgstr "Informações do Paciente"
+
+msgid "Back to Patients"
+msgstr "Voltar aos Pacientes"
+
+# --- Encounter / Dashboard ---
+
+msgid "Today's Encounters"
+msgstr "Consultas de Hoje"
+
+msgid "Book appointment"
+msgstr "Agendar consulta"
+
+msgid "Time"
+msgstr "Horário"
+
+msgid "Patient"
+msgstr "Paciente"
+
+msgid "Doctor"
+msgstr "Médico"
+
+msgid "Reason"
+msgstr "Motivo"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "Action"
+msgstr "Ação"
+
+msgid "Scheduled"
+msgstr "Agendado"
+
+msgid "Arrived"
+msgstr "Chegou"
+
+msgid "In Progress"
+msgstr "Em Atendimento"
+
+msgid "Completed"
+msgstr "Concluído"
+
+msgid "Cancelled"
+msgstr "Cancelado"
+
+msgid "Mark Arrived"
+msgstr "Marcar Chegada"
+
+msgid "Start Consultation"
+msgstr "Iniciar Consulta"
+
+msgid "Complete"
+msgstr "Concluir"
+
+msgid "No encounters scheduled for today."
+msgstr "Nenhuma consulta agendada para hoje."
+
+# --- Encounter detail ---
+
+msgid "Encounter"
+msgstr "Consulta"
+
+msgid "Appointment"
+msgstr "Agendamento"
+
+msgid "Date/Time"
+msgstr "Data/Hora"
+
+msgid "Clinical Notes"
+msgstr "Notas Clínicas"
+
+msgid "Anamnesis"
+msgstr "Anamnese"
+
+msgid "Prescription"
+msgstr "Prescrição"
+
+msgid "Save Notes"
+msgstr "Salvar Notas"
+
+msgid "Complete Encounter"
+msgstr "Concluir Consulta"
+
+msgid "Cancel Encounter"
+msgstr "Cancelar Consulta"
+
+msgid "Encounter History"
+msgstr "Histórico de Consultas"
+
+msgid "No encounters."
+msgstr "Nenhuma consulta."
+
+# --- Booking ---
+
+msgid "Book Appointment"
+msgstr "Agendar Consulta"
+
+msgid "Date"
+msgstr "Data"
+
+msgid "1. Choose Doctor & Date"
+msgstr "1. Escolha Médico e Data"
+
+msgid "Find Slots"
+msgstr "Buscar Horários"
+
+msgid "2. Book a Slot"
+msgstr "2. Agendar Horário"
+
+msgid "Time Slot"
+msgstr "Horário"
+
+msgid "Book"
+msgstr "Agendar"
+
+msgid "No available slots for this date."
+msgstr "Nenhum horário disponível para esta data."
+
+# --- Schedule ---
+
+msgid "All doctors"
+msgstr "Todos os médicos"
+
+msgid "Recurring Schedules"
+msgstr "Agendas Recorrentes"
+
 msgid "Weekday"
 msgstr "Dia da Semana"
 
-#: core/templates/core/schedule_list.html
 msgid "Interval"
 msgstr "Intervalo"
 
-#: core/templates/core/schedule_list.html
 msgid "Slot"
 msgstr "Duração"
 
-#: core/templates/core/schedule_list.html
 msgid "Start date"
 msgstr "Data de início"
 
-#: core/templates/core/schedule_list.html
 #, python-format
 msgid "Every %(weeks)s wk"
 msgstr "A cada %(weeks)s sem"
 
-#: core/templates/core/schedule_list.html
 msgid "No recurring schedules."
 msgstr "Nenhuma agenda recorrente."
 
-#: core/templates/core/schedule_list.html
 msgid "Closed Windows"
 msgstr "Bloqueios de Horário"
 
-#: core/templates/core/schedule_list.html
-msgid "Date"
-msgstr "Data"
-
-#: core/templates/core/schedule_list.html
 msgid "Type"
 msgstr "Tipo"
 
-#: core/templates/core/schedule_list.html
 msgid "Full day"
 msgstr "Dia inteiro"
 
-#: core/templates/core/schedule_list.html
 msgid "Partial"
 msgstr "Parcial"
 
-#: core/templates/core/schedule_list.html
 msgid "No closed windows."
 msgstr "Nenhum bloqueio de horário."
 
-#: core/templates/core/schedule_list.html
 msgid "Occasional Schedules"
 msgstr "Agendas Avulsas"
 
-#: core/templates/core/schedule_list.html
 msgid "No occasional schedules."
 msgstr "Nenhuma agenda avulsa."
 
-#: core/views.py
-msgid "Edit Clinic"
-msgstr "Editar Clínica"
-
-#: core/views.py
-msgid "New Clinic"
-msgstr "Nova Clínica"
-
-#: core/views.py
-msgid "Delete Clinic"
-msgstr "Excluir Clínica"
-
-#: core/views.py
 msgid "Edit Recurring Schedule"
 msgstr "Editar Agenda Recorrente"
 
-#: core/views.py
 msgid "New Recurring Schedule"
 msgstr "Nova Agenda Recorrente"
 
-#: core/views.py
 msgid "Edit Closed Window"
 msgstr "Editar Bloqueio de Horário"
 
-#: core/views.py
 msgid "New Closed Window"
 msgstr "Novo Bloqueio de Horário"
 
-#: core/views.py
 msgid "Edit Occasional Schedule"
 msgstr "Editar Agenda Avulsa"
 
-#: core/views.py
 msgid "New Occasional Schedule"
 msgstr "Nova Agenda Avulsa"
 
-#: core/views.py
 msgid "Delete Recurring Schedule"
 msgstr "Excluir Agenda Recorrente"
 
-#: core/views.py
 msgid "Delete Closed Window"
 msgstr "Excluir Bloqueio de Horário"
 
-#: core/views.py
 msgid "Delete Occasional Schedule"
 msgstr "Excluir Agenda Avulsa"
+
+# --- Delete confirmation ---
+
+msgid "Are you sure you want to delete the following?"
+msgstr "Tem certeza que deseja excluir o item abaixo?"
+
+# --- Print ---
+
+msgid "Print Prescription"
+msgstr "Imprimir Prescrição"
+
+msgid "Print Summary"
+msgstr "Imprimir Resumo"
+
+msgid "Encounter Summary"
+msgstr "Resumo da Consulta"

@@ -1,16 +1,20 @@
+from datetime import datetime
 from functools import wraps
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from .forms import ClinicForm, ClosedWindowForm, DoctorForm, EncounterForm, OccasionalScheduleForm, PatientForm, RecurringScheduleForm
+from .forms import BookingForm, BookingPickDoctorDateForm, ClinicForm, ClosedWindowForm, DoctorForm, EncounterDetailForm, OccasionalScheduleForm, PatientForm, RecurringScheduleForm
+from .slots import get_available_slots
 from .models import (
+    AuditLog,
     Clinic,
     ClosedWindow,
     Doctor,
@@ -20,6 +24,16 @@ from .models import (
     RecurringSchedule,
     User,
 )
+
+
+def audit(user, action, obj, description):
+    AuditLog.objects.create(
+        user=user,
+        action=action,
+        model_name=obj.__class__.__name__,
+        object_id=obj.pk,
+        description=description,
+    )
 
 
 def staff_required(view_func):
@@ -53,6 +67,9 @@ def dashboard(request):
         .select_related("patient", "doctor__user")
         .order_by("scheduled_at")
     )
+    # Non-staff doctors see only their own encounters
+    if not request.user.is_staff and hasattr(request.user, "doctor"):
+        encounters = encounters.filter(doctor=request.user.doctor)
     return render(request, "core/dashboard.html", {"encounters": encounters})
 
 
@@ -62,8 +79,10 @@ def encounter_mark_arrived(request, pk):
     encounter = get_object_or_404(
         Encounter, pk=pk, status=Encounter.Status.SCHEDULED, clinic=request.clinic
     )
+    old_status = encounter.status
     encounter.status = Encounter.Status.ARRIVED
     encounter.save(update_fields=["status", "updated_at"])
+    audit(request.user, AuditLog.Action.STATUS_CHANGE, encounter, f"Status: {old_status} → {encounter.status}")
     return redirect("dashboard")
 
 
@@ -73,8 +92,10 @@ def encounter_start(request, pk):
     encounter = get_object_or_404(
         Encounter, pk=pk, status=Encounter.Status.ARRIVED, clinic=request.clinic
     )
+    old_status = encounter.status
     encounter.status = Encounter.Status.IN_PROGRESS
     encounter.save(update_fields=["status", "updated_at"])
+    audit(request.user, AuditLog.Action.STATUS_CHANGE, encounter, f"Status: {old_status} → {encounter.status}")
     return redirect("dashboard")
 
 
@@ -84,8 +105,10 @@ def encounter_complete(request, pk):
     encounter = get_object_or_404(
         Encounter, pk=pk, status=Encounter.Status.IN_PROGRESS, clinic=request.clinic
     )
+    old_status = encounter.status
     encounter.status = Encounter.Status.COMPLETED
     encounter.save(update_fields=["status", "updated_at"])
+    audit(request.user, AuditLog.Action.STATUS_CHANGE, encounter, f"Status: {old_status} → {encounter.status}")
     return redirect("dashboard")
 
 
@@ -98,31 +121,105 @@ def encounter_cancel(request, pk):
         Encounter.Status.ARRIVED,
     ):
         raise PermissionDenied
+    old_status = encounter.status
     encounter.status = Encounter.Status.CANCELLED
     encounter.save(update_fields=["status", "updated_at"])
+    audit(request.user, AuditLog.Action.STATUS_CHANGE, encounter, f"Status: {old_status} → {encounter.status}")
     return redirect("dashboard")
 
 
 @staff_required
 def encounter_create(request):
     clinic = request.clinic
-    title = _("Book Appointment")
 
-    if request.method == "POST":
-        form = EncounterForm(request.POST, clinic=clinic)
-        if form.is_valid():
-            encounter = form.save(commit=False)
-            encounter.clinic = clinic
-            encounter.save()
-            return redirect("dashboard")
-    else:
-        form = EncounterForm(clinic=clinic)
+    # Step 1: pick doctor + date
+    pick_form = BookingPickDoctorDateForm(request.GET or None, clinic=clinic)
+    doctor = None
+    target_date = None
+    slots = []
+    booking_form = None
+
+    if pick_form.is_valid():
+        doctor = pick_form.cleaned_data["doctor"]
+        target_date = pick_form.cleaned_data["date"]
+        slots = get_available_slots(doctor, clinic, target_date)
+
+        # Step 2: book a slot
+        if request.method == "POST":
+            booking_form = BookingForm(request.POST, slots=slots)
+            if booking_form.is_valid():
+                data = booking_form.cleaned_data
+                slot_time = datetime.strptime(data["slot"], "%H:%M").time()
+                scheduled_at = datetime.combine(target_date, slot_time)
+                scheduled_at = timezone.make_aware(scheduled_at)
+                enc = Encounter.objects.create(
+                    patient=data["patient"],
+                    doctor=doctor,
+                    clinic=clinic,
+                    scheduled_at=scheduled_at,
+                    reason=data["reason"],
+                )
+                audit(request.user, AuditLog.Action.CREATE, enc, f"Booked for {data['patient']} with {doctor}")
+                return redirect("dashboard")
+        else:
+            booking_form = BookingForm(slots=slots)
 
     return render(
         request,
-        "core/schedule_form.html",
-        {"form": form, "title": title, "cancel_url": reverse("dashboard")},
+        "core/encounter_booking.html",
+        {
+            "pick_form": pick_form,
+            "booking_form": booking_form,
+            "doctor": doctor,
+            "target_date": target_date,
+            "slots": slots,
+        },
     )
+
+
+@login_required
+def encounter_detail(request, pk):
+    encounter = get_object_or_404(
+        Encounter.objects.select_related("patient", "doctor__user", "clinic"),
+        pk=pk,
+        clinic=request.clinic,
+    )
+    # Non-staff doctors can only view their own encounters
+    if not request.user.is_staff and hasattr(request.user, "doctor"):
+        if encounter.doctor != request.user.doctor:
+            raise PermissionDenied
+
+    if request.method == "POST" and encounter.status in (
+        Encounter.Status.IN_PROGRESS,
+        Encounter.Status.ARRIVED,
+    ):
+        form = EncounterDetailForm(request.POST, instance=encounter)
+        if form.is_valid():
+            form.save()
+            audit(request.user, AuditLog.Action.UPDATE, encounter, "Updated anamnesis/prescription")
+            return redirect("encounter-detail", pk=pk)
+    else:
+        form = EncounterDetailForm(instance=encounter)
+
+    return render(
+        request,
+        "core/encounter_detail.html",
+        {"encounter": encounter, "form": form},
+    )
+
+
+@login_required
+def encounter_print(request, pk, doc_type):
+    encounter = get_object_or_404(
+        Encounter.objects.select_related("patient", "doctor__user", "clinic"),
+        pk=pk,
+        clinic=request.clinic,
+    )
+    if not request.user.is_staff and hasattr(request.user, "doctor"):
+        if encounter.doctor != request.user.doctor:
+            raise PermissionDenied
+    template = "core/encounter_print_prescription.html" if doc_type == "prescription" else "core/encounter_print_summary.html"
+    return render(request, template, {"encounter": encounter})
 
 
 def logout_view(request):
@@ -268,7 +365,14 @@ def doctor_delete(request, pk):
 @staff_required
 def patient_list(request):
     patients = Patient.objects.order_by("last_name", "first_name")
-    return render(request, "core/patient_list.html", {"patients": patients})
+    q = request.GET.get("q", "").strip()
+    if q:
+        patients = patients.filter(
+            Q(first_name__icontains=q)
+            | Q(last_name__icontains=q)
+            | Q(cpf__icontains=q)
+        )
+    return render(request, "core/patient_list.html", {"patients": patients, "q": q})
 
 
 @staff_required
@@ -305,6 +409,21 @@ def patient_delete(request, pk):
             "title": _("Delete Patient"),
             "cancel_url": reverse("patient-list"),
         },
+    )
+
+
+@login_required
+def patient_detail(request, pk):
+    patient = get_object_or_404(Patient, pk=pk)
+    encounters = (
+        patient.encounters
+        .select_related("doctor__user", "clinic")
+        .order_by("-scheduled_at")
+    )
+    return render(
+        request,
+        "core/patient_detail.html",
+        {"patient": patient, "encounters": encounters},
     )
 
 

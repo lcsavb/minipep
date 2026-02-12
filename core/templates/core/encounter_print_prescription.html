@@ -1,0 +1,52 @@
+{% load i18n static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% trans "Prescription" %} — {{ encounter.patient.first_name }} {{ encounter.patient.last_name }}</title>
+    <style>
+        body { font-family: serif; max-width: 700px; margin: 40px auto; padding: 0 20px; color: #111; }
+        h1 { font-size: 18px; margin-bottom: 4px; }
+        .clinic { font-size: 13px; color: #555; margin-bottom: 24px; }
+        .divider { border-top: 1px solid #ccc; margin: 16px 0; }
+        .field { margin-bottom: 8px; font-size: 14px; }
+        .label { font-weight: bold; }
+        .prescription { white-space: pre-wrap; font-size: 15px; line-height: 1.6; margin-top: 16px; }
+        .footer { margin-top: 48px; font-size: 12px; color: #888; text-align: center; }
+        .signature { margin-top: 64px; text-align: center; }
+        .signature-line { border-top: 1px solid #333; width: 250px; margin: 0 auto 4px; }
+        .signature-name { font-size: 14px; }
+        .signature-crm { font-size: 12px; color: #555; }
+        @media print { .no-print { display: none; } }
+    </style>
+</head>
+<body>
+    <div class="no-print" style="margin-bottom: 16px;">
+        <button onclick="window.print()" style="padding: 8px 16px; cursor: pointer;">{% trans "Print Prescription" %}</button>
+        <a href="{% url 'encounter-detail' encounter.pk %}" style="margin-left: 8px;">{% trans "Back" %}</a>
+    </div>
+
+    <h1>{% trans "Prescription" %}</h1>
+    {% if encounter.clinic %}
+    <div class="clinic">{{ encounter.clinic.name }}</div>
+    {% endif %}
+
+    <div class="divider"></div>
+
+    <div class="field"><span class="label">{% trans "Patient" %}:</span> {{ encounter.patient.first_name }} {{ encounter.patient.last_name }}</div>
+    <div class="field"><span class="label">{% trans "Date of birth" %}:</span> {{ encounter.patient.date_of_birth }}</div>
+    <div class="field"><span class="label">{% trans "Date" %}:</span> {{ encounter.scheduled_at|date:"d/m/Y" }}</div>
+
+    <div class="divider"></div>
+
+    <div class="prescription">{{ encounter.prescription|default:"—" }}</div>
+
+    <div class="signature">
+        <div class="signature-line"></div>
+        <div class="signature-name">{{ encounter.doctor }}</div>
+        <div class="signature-crm">CRM {{ encounter.doctor.license_number }}</div>
+    </div>
+
+    <div class="footer">{{ encounter.scheduled_at|date:"d/m/Y H:i" }}</div>
+</body>
+</html>
