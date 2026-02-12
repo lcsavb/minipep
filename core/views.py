@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
 
 from django.contrib.auth import authenticate, login, logout
@@ -11,7 +11,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from .forms import BookingForm, BookingPickDoctorDateForm, ClinicForm, ClosedWindowForm, DoctorForm, EncounterDetailForm, OccasionalScheduleForm, PatientForm, RecurringScheduleForm
+from .forms import ClinicForm, ClosedWindowForm, DoctorForm, EncounterDetailForm, OccasionalScheduleForm, PatientForm, RecurringScheduleForm
 from .slots import get_available_slots
 from .models import (
     AuditLog,
@@ -131,48 +131,85 @@ def encounter_cancel(request, pk):
 @staff_required
 def encounter_create(request):
     clinic = request.clinic
+    today = timezone.localdate()
 
-    # Step 1: pick doctor + date
-    pick_form = BookingPickDoctorDateForm(request.GET or None, clinic=clinic)
-    doctor = None
-    target_date = None
-    slots = []
-    booking_form = None
+    # Determine the Monday of the selected week
+    week_str = request.GET.get("week", "")
+    try:
+        week_start = datetime.strptime(week_str, "%Y-%m-%d").date()
+        # Snap to Monday
+        week_start -= timedelta(days=week_start.weekday())
+    except (ValueError, TypeError):
+        week_start = today - timedelta(days=today.weekday())
 
-    if pick_form.is_valid():
-        doctor = pick_form.cleaned_data["doctor"]
-        target_date = pick_form.cleaned_data["date"]
-        slots = get_available_slots(doctor, clinic, target_date)
+    dates = [week_start + timedelta(days=i) for i in range(7)]
+    prev_week = (week_start - timedelta(weeks=1)).isoformat()
+    next_week = (week_start + timedelta(weeks=1)).isoformat()
 
-        # Step 2: book a slot
-        if request.method == "POST":
-            booking_form = BookingForm(request.POST, slots=slots)
-            if booking_form.is_valid():
-                data = booking_form.cleaned_data
-                slot_time = datetime.strptime(data["slot"], "%H:%M").time()
-                scheduled_at = datetime.combine(target_date, slot_time)
-                scheduled_at = timezone.make_aware(scheduled_at)
-                enc = Encounter.objects.create(
-                    patient=data["patient"],
-                    doctor=doctor,
-                    clinic=clinic,
-                    scheduled_at=scheduled_at,
-                    reason=data["reason"],
-                )
-                audit(request.user, AuditLog.Action.CREATE, enc, f"Booked for {data['patient']} with {doctor}")
-                return redirect("dashboard")
+    error = ""
+
+    # Handle POST — inline booking
+    if request.method == "POST":
+        doctor_id = request.POST.get("doctor_id")
+        patient_id = request.POST.get("patient_id")
+        date_str = request.POST.get("date")
+        slot_str = request.POST.get("slot")
+
+        doctor = get_object_or_404(Doctor, pk=doctor_id, clinic=clinic)
+        patient = get_object_or_404(Patient, pk=patient_id)
+        target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        slot_time = datetime.strptime(slot_str, "%H:%M").time()
+
+        # Verify slot is still available
+        available = get_available_slots(doctor, clinic, target_date)
+        if slot_time in available:
+            scheduled_at = timezone.make_aware(
+                datetime.combine(target_date, slot_time)
+            )
+            enc = Encounter.objects.create(
+                patient=patient,
+                doctor=doctor,
+                clinic=clinic,
+                scheduled_at=scheduled_at,
+            )
+            audit(
+                request.user,
+                AuditLog.Action.CREATE,
+                enc,
+                f"Booked for {patient} with {doctor}",
+            )
+            return redirect("dashboard")
         else:
-            booking_form = BookingForm(slots=slots)
+            error = _("This slot is no longer available.")
+
+    # Build week grid for all doctors
+    doctors = (
+        Doctor.objects.filter(clinic=clinic)
+        .select_related("user")
+        .order_by("user__first_name")
+    )
+    week_grid = []
+    for doctor in doctors:
+        slots_by_date = []
+        for d in dates:
+            slots = get_available_slots(doctor, clinic, d)
+            slots_by_date.append((d, slots))
+        week_grid.append({"doctor": doctor, "slots_by_date": slots_by_date})
+
+    patients = Patient.objects.order_by("last_name", "first_name")
 
     return render(
         request,
         "core/encounter_booking.html",
         {
-            "pick_form": pick_form,
-            "booking_form": booking_form,
-            "doctor": doctor,
-            "target_date": target_date,
-            "slots": slots,
+            "week_start": week_start,
+            "dates": dates,
+            "prev_week": prev_week,
+            "next_week": next_week,
+            "week_grid": week_grid,
+            "patients": patients,
+            "today": today,
+            "error": error,
         },
     )
 

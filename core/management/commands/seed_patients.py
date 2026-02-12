@@ -24,19 +24,6 @@ DOCTORS = [
     ("Sarah", "Johansson", "sarah.johansson@minipep.com", "Pediatrics", "LIC-10003"),
 ]
 
-REASONS = [
-    "Annual physical exam",
-    "Follow-up: blood pressure",
-    "Persistent cough, 2 weeks",
-    "Knee pain after fall",
-    "Medication review",
-    "Headaches and dizziness",
-    "Skin rash on forearm",
-    "Pre-operative assessment",
-    "Diabetes check-up",
-    "Back pain, chronic",
-]
-
 
 class Command(BaseCommand):
     help = "Seed the database with mock patients, doctors, and today's encounters"
@@ -87,7 +74,6 @@ class Command(BaseCommand):
                     patient=patient,
                     doctor=doctor,
                     scheduled_at=scheduled,
-                    reason=REASONS[i],
                 )
             )
         Encounter.objects.bulk_create(encounters)

@@ -23,7 +23,6 @@
                         <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{% trans "Time" %}</th>
                         <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{% trans "Patient" %}</th>
                         <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{% trans "Doctor" %}</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{% trans "Reason" %}</th>
                         <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{% trans "Status" %}</th>
                         <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{% trans "Action" %}</th>
                     </tr>
@@ -34,7 +33,6 @@
                         <td class="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{{ enc.scheduled_at|time:"H:i" }}</td>
                         <td class="whitespace-nowrap px-4 py-3 text-sm"><a href="{% url 'encounter-detail' enc.pk %}" class="text-violet-600 hover:text-violet-500 font-medium">{{ enc.patient }}</a></td>
                         <td class="whitespace-nowrap px-4 py-3 text-sm"><a href="{% url 'schedule-list' %}?doctor={{ enc.doctor.pk }}" class="text-violet-600 hover:text-violet-500 font-medium">{{ enc.doctor }}</a></td>
-                        <td class="px-4 py-3 text-sm text-gray-500 max-w-xs truncate">{{ enc.reason }}</td>
                         <td class="whitespace-nowrap px-4 py-3 text-sm">
                             {% if enc.status == "scheduled" %}
                                 <span class="inline-flex items-center rounded-full bg-sky-50 px-2.5 py-0.5 text-xs font-medium text-sky-700">{% trans "Scheduled" %}</span>

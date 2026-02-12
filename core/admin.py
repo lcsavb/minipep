@@ -52,7 +52,7 @@ class PatientAdmin(admin.ModelAdmin):
 class EncounterAdmin(admin.ModelAdmin):
     list_display = ["patient", "doctor", "status", "scheduled_at"]
     list_filter = ["status", "scheduled_at"]
-    search_fields = ["patient__first_name", "patient__last_name", "reason"]
+    search_fields = ["patient__first_name", "patient__last_name"]
 
 
 @admin.register(RecurringSchedule)

@@ -97,7 +97,6 @@ class Encounter(models.Model):
     )
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.SCHEDULED)
     scheduled_at = models.DateTimeField()
-    reason = models.TextField()
     notes = models.TextField(blank=True)
     anamnesis = models.TextField(blank=True)
     prescription = models.TextField(blank=True)

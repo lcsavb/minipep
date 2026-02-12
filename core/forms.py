@@ -192,38 +192,6 @@ class PatientForm(forms.ModelForm):
         )
 
 
-class BookingPickDoctorDateForm(forms.Form):
-    doctor = forms.ModelChoiceField(queryset=Doctor.objects.none(), label=_("Doctor"))
-    date = forms.DateField(label=_("Date"), widget=forms.DateInput(attrs={"type": "date", "class": INPUT_CSS}))
-
-    def __init__(self, *args, clinic=None, **kwargs):
-        super().__init__(*args, **kwargs)
-        if clinic:
-            self.fields["doctor"].queryset = Doctor.objects.filter(clinic=clinic).select_related("user")
-        self.fields["doctor"].widget.attrs["class"] = SELECT_CSS
-        self.fields["date"].widget.attrs["class"] = INPUT_CSS
-
-
-class BookingForm(forms.Form):
-    patient = forms.ModelChoiceField(queryset=Patient.objects.none(), label=_("Patient"))
-    slot = forms.ChoiceField(choices=[], label=_("Time Slot"))
-    reason = forms.CharField(widget=forms.Textarea(attrs={"rows": 3}), label=_("Reason"))
-
-    def __init__(self, *args, slots=None, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["patient"].queryset = Patient.objects.order_by("last_name", "first_name")
-        if slots:
-            self.fields["slot"].choices = [(s.strftime("%H:%M"), s.strftime("%H:%M")) for s in slots]
-        for field in self.fields.values():
-            widget = field.widget
-            if isinstance(widget, forms.Select):
-                widget.attrs["class"] = SELECT_CSS
-            elif isinstance(widget, forms.Textarea):
-                widget.attrs["class"] = TEXTAREA_CSS
-                widget.attrs["rows"] = 3
-            else:
-                widget.attrs["class"] = INPUT_CSS
-
 
 TEXTAREA_CSS = (
     "block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 "

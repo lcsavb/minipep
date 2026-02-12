@@ -289,23 +289,23 @@ msgstr "Agendar Consulta"
 msgid "Date"
 msgstr "Data"
 
-msgid "1. Choose Doctor & Date"
-msgstr "1. Escolha Médico e Data"
-
-msgid "Find Slots"
-msgstr "Buscar Horários"
-
-msgid "2. Book a Slot"
-msgstr "2. Agendar Horário"
-
-msgid "Time Slot"
-msgstr "Horário"
-
 msgid "Book"
 msgstr "Agendar"
 
-msgid "No available slots for this date."
-msgstr "Nenhum horário disponível para esta data."
+msgid "Previous Week"
+msgstr "Semana Anterior"
+
+msgid "Next Week"
+msgstr "Próxima Semana"
+
+msgid "Select patient…"
+msgstr "Selecionar paciente…"
+
+msgid "This slot is no longer available."
+msgstr "Este horário não está mais disponível."
+
+msgid "more"
+msgstr "mais"
 
 # --- Schedule ---
 

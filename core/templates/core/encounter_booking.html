@@ -7,75 +7,190 @@
 <div class="min-h-screen">
     {% include "core/_header.html" %}
 
-    <main class="mx-auto max-w-xl px-4 sm:px-6 lg:px-8 py-8">
-        <h2 class="text-lg font-semibold text-gray-900 mb-6">{% trans "Book Appointment" %}</h2>
-
-        <!-- Step 1: Pick doctor + date -->
-        <div class="rounded-lg border border-gray-200 bg-white p-6 mb-6">
-            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">{% trans "1. Choose Doctor & Date" %}</h3>
-            <form method="get" class="space-y-4">
-                {% for field in pick_form %}
-                <div>
-                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}</label>
-                    {{ field }}
-                    {% for error in field.errors %}
-                    <p class="mt-1 text-xs text-red-600">{{ error }}</p>
-                    {% endfor %}
-                </div>
-                {% endfor %}
-                <button type="submit"
-                        class="rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-500 transition">
-                    {% trans "Find Slots" %}
-                </button>
-            </form>
-        </div>
-
-        {% if doctor and target_date %}
-        <!-- Step 2: Available slots -->
-        <div class="rounded-lg border border-gray-200 bg-white p-6">
-            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
-                {% trans "2. Book a Slot" %} — {{ doctor }}, {{ target_date }}
-            </h3>
-
-            {% if slots %}
-            <form method="post" action="?doctor={{ doctor.pk }}&date={{ target_date|date:'Y-m-d' }}" class="space-y-5">
-                {% csrf_token %}
-                {% for field in booking_form %}
-                <div>
-                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}</label>
-                    {{ field }}
-                    {% if field.help_text %}
-                    <p class="mt-1 text-xs text-gray-400">{{ field.help_text }}</p>
-                    {% endif %}
-                    {% for error in field.errors %}
-                    <p class="mt-1 text-xs text-red-600">{{ error }}</p>
-                    {% endfor %}
-                </div>
-                {% endfor %}
-                <div class="flex items-center gap-3 pt-3">
-                    <button type="submit"
-                            class="rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-500 transition">
-                        {% trans "Book" %}
-                    </button>
-                    <a href="{% url 'dashboard' %}"
-                       class="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition">
-                        {% trans "Cancel" %}
-                    </a>
-                </div>
-            </form>
-            {% else %}
-            <div class="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-6 py-10 text-center">
-                <p class="text-sm text-gray-400">{% trans "No available slots for this date." %}</p>
-            </div>
-            {% endif %}
-        </div>
-        {% endif %}
-
-        {% if not doctor %}
-        <div class="text-center">
+    <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-lg font-semibold text-gray-900">{% trans "Book Appointment" %}</h2>
             <a href="{% url 'dashboard' %}" class="text-sm font-medium text-gray-600 hover:text-gray-900 transition">{% trans "Back to Dashboard" %}</a>
         </div>
+
+        {% if error %}
+        <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {{ error }}
+        </div>
         {% endif %}
+
+        <!-- Week navigation -->
+        <div class="flex items-center justify-between mb-6">
+            <a href="?week={{ prev_week }}"
+               class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                {% trans "Previous Week" %}
+            </a>
+            <span class="text-sm font-semibold text-gray-900">
+                {{ dates.0|date:"d M" }} – {{ dates.6|date:"d M Y" }}
+            </span>
+            <a href="?week={{ next_week }}"
+               class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
+                {% trans "Next Week" %}
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </a>
+        </div>
+
+        <!-- Week grid -->
+        <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead>
+                    <tr class="bg-gray-50/60">
+                        <th class="sticky left-0 z-10 bg-gray-50/60 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 min-w-[160px]">
+                            {% trans "Doctor" %}
+                        </th>
+                        {% for d in dates %}
+                        <th class="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider min-w-[100px] {% if d == today %}bg-violet-50 text-violet-700{% else %}text-gray-500{% endif %}">
+                            {{ d|date:"D" }}<br>
+                            <span class="text-sm font-semibold {% if d == today %}text-violet-700{% else %}text-gray-900{% endif %}">{{ d|date:"d" }}</span>
+                        </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for entry in week_grid %}
+                    <!-- Doctor row -->
+                    <tr class="align-top">
+                        <td class="sticky left-0 z-10 bg-white px-4 py-3 text-sm font-medium text-gray-900 border-r border-gray-100">
+                            {{ entry.doctor }}
+                            <div class="text-xs text-gray-400">{{ entry.doctor.specialty }}</div>
+                        </td>
+                        {% for d, slots in entry.slots_by_date %}
+                        <td class="px-2 py-2 text-center align-top {% if d == today %}bg-violet-50/30{% endif %}">
+                            {% if slots %}
+                                <div class="flex flex-col gap-1">
+                                    {% for slot in slots|slice:":8" %}
+                                    <button type="button"
+                                            onclick="showBookingForm({{ entry.doctor.pk }}, '{{ d|date:'Y-m-d' }}', '{{ slot|time:'H:i' }}')"
+                                            class="rounded bg-violet-50 px-2 py-1 text-xs font-medium text-violet-700 hover:bg-violet-100 transition cursor-pointer">
+                                        {{ slot|time:"H:i" }}
+                                    </button>
+                                    {% endfor %}
+                                    {% with extra=slots|length %}
+                                    {% if extra > 8 %}
+                                    <button type="button"
+                                            onclick="toggleExtra(this)"
+                                            class="text-xs text-gray-400 hover:text-violet-600 transition cursor-pointer"
+                                            data-doctor="{{ entry.doctor.pk }}"
+                                            data-date="{{ d|date:'Y-m-d' }}">
+                                        +{{ extra|add:"-8" }} {% trans "more" %}
+                                    </button>
+                                    <div class="hidden flex flex-col gap-1" data-extra="{{ entry.doctor.pk }}-{{ d|date:'Y-m-d' }}">
+                                        {% for slot in slots|slice:"8:" %}
+                                        <button type="button"
+                                                onclick="showBookingForm({{ entry.doctor.pk }}, '{{ d|date:'Y-m-d' }}', '{{ slot|time:'H:i' }}')"
+                                                class="rounded bg-violet-50 px-2 py-1 text-xs font-medium text-violet-700 hover:bg-violet-100 transition cursor-pointer">
+                                            {{ slot|time:"H:i" }}
+                                        </button>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                    {% endwith %}
+                                </div>
+                            {% else %}
+                                <span class="text-xs text-gray-300">—</span>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    <!-- Inline booking form row (hidden by default) -->
+                    <tr id="booking-row-{{ entry.doctor.pk }}" class="hidden">
+                        <td colspan="8" class="px-4 py-3 bg-violet-50/50 border-b border-violet-100">
+                            <form method="post" class="flex items-end gap-4 flex-wrap">
+                                {% csrf_token %}
+                                <input type="hidden" name="doctor_id" value="{{ entry.doctor.pk }}">
+                                <input type="hidden" name="date" id="booking-date-{{ entry.doctor.pk }}" value="">
+                                <input type="hidden" name="slot" id="booking-slot-{{ entry.doctor.pk }}" value="">
+
+                                <div class="flex-1 min-w-[200px]">
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Doctor" %}</label>
+                                    <span class="text-sm font-medium text-gray-900">{{ entry.doctor }}</span>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Date/Time" %}</label>
+                                    <span class="text-sm font-medium text-gray-900" id="booking-display-{{ entry.doctor.pk }}"></span>
+                                </div>
+
+                                <div class="flex-1 min-w-[200px]">
+                                    <label for="patient-select-{{ entry.doctor.pk }}" class="block text-xs font-medium text-gray-500 mb-1">{% trans "Patient" %}</label>
+                                    <select name="patient_id" id="patient-select-{{ entry.doctor.pk }}" required
+                                            class="block w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-900 shadow-sm focus:border-violet-500 focus:ring-1 focus:ring-violet-500">
+                                        <option value="">{% trans "Select patient…" %}</option>
+                                        {% for p in patients %}
+                                        <option value="{{ p.pk }}">{{ p }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="flex items-center gap-2">
+                                    <button type="submit"
+                                            class="rounded-lg bg-violet-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-violet-500 transition">
+                                        {% trans "Book" %}
+                                    </button>
+                                    <button type="button"
+                                            onclick="hideBookingForm({{ entry.doctor.pk }})"
+                                            class="rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 transition">
+                                        {% trans "Cancel" %}
+                                    </button>
+                                </div>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                    {% if not week_grid %}
+                    <tr>
+                        <td colspan="8" class="px-6 py-10 text-center text-sm text-gray-400">
+                            {% trans "No doctors." %}
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
     </main>
 </div>
+
+<script>
+function showBookingForm(doctorPk, date, slot) {
+    // Hide any currently open booking forms
+    document.querySelectorAll('[id^="booking-row-"]').forEach(function(row) {
+        row.classList.add('hidden');
+    });
+
+    // Fill hidden fields
+    document.getElementById('booking-date-' + doctorPk).value = date;
+    document.getElementById('booking-slot-' + doctorPk).value = slot;
+
+    // Display date + time
+    document.getElementById('booking-display-' + doctorPk).textContent = date + ' ' + slot;
+
+    // Show the row
+    document.getElementById('booking-row-' + doctorPk).classList.remove('hidden');
+}
+
+function hideBookingForm(doctorPk) {
+    document.getElementById('booking-row-' + doctorPk).classList.add('hidden');
+}
+
+function toggleExtra(btn) {
+    var doctorPk = btn.getAttribute('data-doctor');
+    var date = btn.getAttribute('data-date');
+    var container = document.querySelector('[data-extra="' + doctorPk + '-' + date + '"]');
+    if (container) {
+        container.classList.toggle('hidden');
+        if (container.classList.contains('hidden')) {
+            btn.textContent = btn.textContent;
+        } else {
+            btn.classList.add('hidden');
+        }
+    }
+}
+</script>
 {% endblock %}
