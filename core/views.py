@@ -11,8 +11,10 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from .forms import ClinicForm, ClosedWindowForm, DoctorForm, EncounterDetailForm, OccasionalScheduleForm, PatientForm, RecurringScheduleForm
-from .slots import get_available_slots
+from .forms import ClinicForm, ClosedWindowForm, DoctorForm, EncounterDetailForm, FrontDeskForm, OccasionalScheduleForm, PatientForm, RecurringScheduleForm
+from .slots import get_all_slots, get_available_slots
+from django.contrib.auth.models import Group
+
 from .models import (
     AuditLog,
     Clinic,
@@ -36,14 +38,29 @@ def audit(user, action, obj, description):
     )
 
 
-def staff_required(view_func):
-    @wraps(view_func)
-    @login_required
-    def wrapper(request, *args, **kwargs):
-        if not request.user.is_staff:
-            raise PermissionDenied
-        return view_func(request, *args, **kwargs)
-    return wrapper
+def is_admin(user):
+    return user.is_staff
+
+
+def is_front_desk(user):
+    return user.groups.filter(name="front_desk").exists()
+
+
+def is_doctor(user):
+    return hasattr(user, "doctor")
+
+
+def role_required(*checkers):
+    """Allow access if user passes ANY of the given role checks (OR semantics)."""
+    def decorator(view_func):
+        @wraps(view_func)
+        @login_required
+        def wrapper(request, *args, **kwargs):
+            if not any(check(request.user) for check in checkers):
+                raise PermissionDenied
+            return view_func(request, *args, **kwargs)
+        return wrapper
+    return decorator
 
 
 def login_view(request):
@@ -61,19 +78,116 @@ def login_view(request):
 
 @login_required
 def dashboard(request):
+    if is_front_desk(request.user) and not is_admin(request.user):
+        return redirect("front-desk-dashboard")
+
     today = timezone.localdate()
     encounters = (
         Encounter.objects.filter(scheduled_at__date=today, clinic=request.clinic)
         .select_related("patient", "doctor__user")
         .order_by("scheduled_at")
     )
-    # Non-staff doctors see only their own encounters
-    if not request.user.is_staff and hasattr(request.user, "doctor"):
+    # Doctors (non-admin) see only their own encounters
+    if not is_admin(request.user) and is_doctor(request.user):
         encounters = encounters.filter(doctor=request.user.doctor)
-    return render(request, "core/dashboard.html", {"encounters": encounters})
+
+    in_progress = [e for e in encounters if e.status == Encounter.Status.IN_PROGRESS]
+    waiting = [e for e in encounters if e.status == Encounter.Status.ARRIVED]
+    upcoming = [e for e in encounters if e.status in (Encounter.Status.SCHEDULED, Encounter.Status.CONFIRMED)]
+    done = [e for e in encounters if e.status in (Encounter.Status.COMPLETED, Encounter.Status.CANCELLED)]
+
+    return render(request, "core/dashboard.html", {
+        "in_progress": in_progress,
+        "waiting": waiting,
+        "upcoming": upcoming,
+        "done": done,
+        "today": today,
+    })
 
 
-@login_required
+@role_required(is_admin, is_front_desk)
+def front_desk_dashboard(request):
+    today = timezone.localdate()
+    clinic = request.clinic
+
+    doctors = (
+        Doctor.objects.filter(clinic=clinic)
+        .select_related("user")
+        .order_by("user__first_name")
+    )
+
+    doctor_data = []
+    for doctor in doctors:
+        slots = get_all_slots(doctor, clinic, today)
+        if not slots:
+            continue
+        encounters = (
+            Encounter.objects.filter(
+                doctor=doctor, clinic=clinic, scheduled_at__date=today
+            )
+            .select_related("patient")
+            .order_by("scheduled_at")
+        )
+        doctor_data.append({"doctor": doctor, "encounters": encounters})
+
+    return render(request, "core/front_desk_dashboard.html", {
+        "doctor_data": doctor_data,
+        "today": today,
+    })
+
+
+@role_required(is_doctor)
+def doctor_schedule(request):
+
+    doctor = request.user.doctor
+    clinic = request.clinic
+    today = timezone.localdate()
+
+    # Determine the Monday of the selected week
+    week_str = request.GET.get("week", "")
+    try:
+        week_start = datetime.strptime(week_str, "%Y-%m-%d").date()
+        week_start -= timedelta(days=week_start.weekday())
+    except (ValueError, TypeError):
+        week_start = today - timedelta(days=today.weekday())
+
+    week_end = week_start + timedelta(days=6)
+    dates = [week_start + timedelta(days=i) for i in range(7)]
+    prev_week = (week_start - timedelta(weeks=1)).isoformat()
+    next_week = (week_start + timedelta(weeks=1)).isoformat()
+
+    encounters = (
+        Encounter.objects.filter(
+            doctor=doctor,
+            clinic=clinic,
+            scheduled_at__date__gte=week_start,
+            scheduled_at__date__lte=week_end,
+        )
+        .exclude(status=Encounter.Status.CANCELLED)
+        .select_related("patient")
+        .order_by("scheduled_at")
+    )
+
+    # Group by date
+    enc_by_date = {d: [] for d in dates}
+    for enc in encounters:
+        enc_date = enc.scheduled_at.date()
+        if enc_date in enc_by_date:
+            enc_by_date[enc_date].append(enc)
+
+    week_data = [(d, enc_by_date[d]) for d in dates]
+
+    return render(request, "core/doctor_schedule.html", {
+        "week_data": week_data,
+        "week_start": week_start,
+        "dates": dates,
+        "prev_week": prev_week,
+        "next_week": next_week,
+        "today": today,
+    })
+
+
+@role_required(is_admin, is_front_desk)
 @require_POST
 def encounter_mark_arrived(request, pk):
     encounter = get_object_or_404(
@@ -83,6 +197,9 @@ def encounter_mark_arrived(request, pk):
     encounter.status = Encounter.Status.ARRIVED
     encounter.save(update_fields=["status", "updated_at"])
     audit(request.user, AuditLog.Action.STATUS_CHANGE, encounter, f"Status: {old_status} → {encounter.status}")
+    next_url = request.POST.get("next")
+    if next_url:
+        return redirect(next_url)
     return redirect("dashboard")
 
 
@@ -96,6 +213,9 @@ def encounter_start(request, pk):
     encounter.status = Encounter.Status.IN_PROGRESS
     encounter.save(update_fields=["status", "updated_at"])
     audit(request.user, AuditLog.Action.STATUS_CHANGE, encounter, f"Status: {old_status} → {encounter.status}")
+    next_url = request.POST.get("next")
+    if next_url:
+        return redirect(next_url)
     return redirect("dashboard")
 
 
@@ -109,6 +229,9 @@ def encounter_complete(request, pk):
     encounter.status = Encounter.Status.COMPLETED
     encounter.save(update_fields=["status", "updated_at"])
     audit(request.user, AuditLog.Action.STATUS_CHANGE, encounter, f"Status: {old_status} → {encounter.status}")
+    next_url = request.POST.get("next")
+    if next_url:
+        return redirect(next_url)
     return redirect("dashboard")
 
 
@@ -125,10 +248,13 @@ def encounter_cancel(request, pk):
     encounter.status = Encounter.Status.CANCELLED
     encounter.save(update_fields=["status", "updated_at"])
     audit(request.user, AuditLog.Action.STATUS_CHANGE, encounter, f"Status: {old_status} → {encounter.status}")
+    next_url = request.POST.get("next")
+    if next_url:
+        return redirect(next_url)
     return redirect("dashboard")
 
 
-@staff_required
+@role_required(is_admin, is_front_desk)
 def encounter_create(request):
     clinic = request.clinic
     today = timezone.localdate()
@@ -160,12 +286,16 @@ def encounter_create(request):
         target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
         slot_time = datetime.strptime(slot_str, "%H:%M").time()
 
+        # Reject bookings in the past
+        scheduled_at = timezone.make_aware(
+            datetime.combine(target_date, slot_time)
+        )
+        if scheduled_at <= timezone.now():
+            error = _("This slot is no longer available.")
         # Verify slot is still available
-        available = get_available_slots(doctor, clinic, target_date)
-        if slot_time in available:
-            scheduled_at = timezone.make_aware(
-                datetime.combine(target_date, slot_time)
-            )
+        elif slot_time not in get_available_slots(doctor, clinic, target_date):
+            error = _("This slot is no longer available.")
+        else:
             enc = Encounter.objects.create(
                 patient=patient,
                 doctor=doctor,
@@ -178,9 +308,7 @@ def encounter_create(request):
                 enc,
                 f"Booked for {patient} with {doctor}",
             )
-            return redirect("dashboard")
-        else:
-            error = _("This slot is no longer available.")
+            return redirect(f"{reverse('encounter-create')}?week={week_start.isoformat()}")
 
     # Build week grid for all doctors
     doctors = (
@@ -188,11 +316,18 @@ def encounter_create(request):
         .select_related("user")
         .order_by("user__first_name")
     )
+    now = timezone.now()
+    now_time = timezone.localtime(now).time()
     week_grid = []
     for doctor in doctors:
         slots_by_date = []
         for d in dates:
-            slots = get_available_slots(doctor, clinic, d)
+            if d < today:
+                slots = []
+            else:
+                slots = get_all_slots(doctor, clinic, d)
+                if d == today:
+                    slots = [s for s in slots if s["time"] > now_time]
             slots_by_date.append((d, slots))
         week_grid.append({"doctor": doctor, "slots_by_date": slots_by_date})
 
@@ -221,15 +356,19 @@ def encounter_detail(request, pk):
         pk=pk,
         clinic=request.clinic,
     )
-    # Non-staff doctors can only view their own encounters
-    if not request.user.is_staff and hasattr(request.user, "doctor"):
+    # Non-admin doctors can only view their own encounters
+    if not is_admin(request.user) and is_doctor(request.user):
         if encounter.doctor != request.user.doctor:
             raise PermissionDenied
+
+    can_view_clinical = is_admin(request.user) or is_doctor(request.user)
 
     if request.method == "POST" and encounter.status in (
         Encounter.Status.IN_PROGRESS,
         Encounter.Status.ARRIVED,
     ):
+        if not can_view_clinical:
+            raise PermissionDenied
         form = EncounterDetailForm(request.POST, instance=encounter)
         if form.is_valid():
             form.save()
@@ -241,18 +380,20 @@ def encounter_detail(request, pk):
     return render(
         request,
         "core/encounter_detail.html",
-        {"encounter": encounter, "form": form},
+        {"encounter": encounter, "form": form, "can_view_clinical": can_view_clinical},
     )
 
 
 @login_required
 def encounter_print(request, pk, doc_type):
+    if is_front_desk(request.user) and not is_admin(request.user):
+        raise PermissionDenied
     encounter = get_object_or_404(
         Encounter.objects.select_related("patient", "doctor__user", "clinic"),
         pk=pk,
         clinic=request.clinic,
     )
-    if not request.user.is_staff and hasattr(request.user, "doctor"):
+    if not is_admin(request.user) and is_doctor(request.user):
         if encounter.doctor != request.user.doctor:
             raise PermissionDenied
     template = "core/encounter_print_prescription.html" if doc_type == "prescription" else "core/encounter_print_summary.html"
@@ -279,13 +420,13 @@ def select_clinic(request):
 # --- Clinic views ---
 
 
-@staff_required
+@role_required(is_admin, is_front_desk)
 def clinic_list(request):
     clinics = Clinic.objects.all()
     return render(request, "core/clinic_list.html", {"clinics": clinics})
 
 
-@staff_required
+@role_required(is_admin, is_front_desk)
 def clinic_form(request, pk=None):
     instance = get_object_or_404(Clinic, pk=pk) if pk else None
     title = _("Edit Clinic") if pk else _("New Clinic")
@@ -305,7 +446,7 @@ def clinic_form(request, pk=None):
     )
 
 
-@staff_required
+@role_required(is_admin, is_front_desk)
 def clinic_delete(request, pk):
     obj = get_object_or_404(Clinic, pk=pk)
     if request.method == "POST":
@@ -328,13 +469,78 @@ def clinic_delete(request, pk):
 # --- Doctor views ---
 
 
-@staff_required
+# --- Front Desk views ---
+
+
+@role_required(is_admin)
+def front_desk_list(request):
+    users = User.objects.filter(groups__name="front_desk").order_by("first_name", "last_name")
+    return render(request, "core/front_desk_list.html", {"front_desk_users": users})
+
+
+@role_required(is_admin)
+def front_desk_form(request, pk=None):
+    instance = get_object_or_404(User, pk=pk, groups__name="front_desk") if pk else None
+    title = _("Edit Front Desk User") if pk else _("New Front Desk User")
+
+    if request.method == "POST":
+        form = FrontDeskForm(request.POST, instance=instance)
+        if form.is_valid():
+            data = form.cleaned_data
+            if instance:
+                instance.first_name = data["first_name"]
+                instance.last_name = data["last_name"]
+                instance.email = data["email"]
+                if data["password"]:
+                    instance.set_password(data["password"])
+                instance.save()
+            else:
+                user = User.objects.create_user(
+                    email=data["email"],
+                    password=data["password"],
+                    first_name=data["first_name"],
+                    last_name=data["last_name"],
+                )
+                group, _created = Group.objects.get_or_create(name="front_desk")
+                user.groups.add(group)
+            return redirect("front-desk-list")
+    else:
+        form = FrontDeskForm(instance=instance)
+
+    return render(
+        request,
+        "core/schedule_form.html",
+        {"form": form, "title": title, "cancel_url": reverse("front-desk-list")},
+    )
+
+
+@role_required(is_admin)
+def front_desk_delete(request, pk):
+    user = get_object_or_404(User, pk=pk, groups__name="front_desk")
+    if request.method == "POST":
+        user.delete()
+        return redirect("front-desk-list")
+    return render(
+        request,
+        "core/schedule_confirm_delete.html",
+        {
+            "object": user,
+            "title": _("Delete Front Desk User"),
+            "cancel_url": reverse("front-desk-list"),
+        },
+    )
+
+
+# --- Doctor views ---
+
+
+@role_required(is_admin, is_front_desk)
 def doctor_list(request):
     doctors = Doctor.objects.filter(clinic=request.clinic).select_related("user")
     return render(request, "core/doctor_list.html", {"doctors": doctors})
 
 
-@staff_required
+@role_required(is_admin, is_front_desk)
 def doctor_form(request, pk=None):
     clinic = request.clinic
     instance = get_object_or_404(Doctor, pk=pk, clinic=clinic) if pk else None
@@ -379,7 +585,7 @@ def doctor_form(request, pk=None):
     )
 
 
-@staff_required
+@role_required(is_admin, is_front_desk)
 def doctor_delete(request, pk):
     doctor = get_object_or_404(Doctor, pk=pk, clinic=request.clinic)
     if request.method == "POST":
@@ -399,7 +605,7 @@ def doctor_delete(request, pk):
 # --- Patient views ---
 
 
-@staff_required
+@role_required(is_admin, is_front_desk)
 def patient_list(request):
     patients = Patient.objects.order_by("last_name", "first_name")
     q = request.GET.get("q", "").strip()
@@ -412,7 +618,7 @@ def patient_list(request):
     return render(request, "core/patient_list.html", {"patients": patients, "q": q})
 
 
-@staff_required
+@role_required(is_admin, is_front_desk)
 def patient_form(request, pk=None):
     instance = get_object_or_404(Patient, pk=pk) if pk else None
     title = _("Edit Patient") if pk else _("New Patient")
@@ -432,7 +638,7 @@ def patient_form(request, pk=None):
     )
 
 
-@staff_required
+@role_required(is_admin, is_front_desk)
 def patient_delete(request, pk):
     patient = get_object_or_404(Patient, pk=pk)
     if request.method == "POST":
@@ -467,7 +673,7 @@ def patient_detail(request, pk):
 # --- Schedule views ---
 
 
-@staff_required
+@role_required(is_admin, is_front_desk)
 def schedule_list(request):
     clinic = request.clinic
     doctors = Doctor.objects.filter(clinic=clinic).select_related("user").order_by("user__first_name")
@@ -502,7 +708,7 @@ def schedule_list(request):
     )
 
 
-@staff_required
+@role_required(is_admin, is_front_desk)
 def recurring_schedule_form(request, pk=None):
     clinic = request.clinic
     instance = get_object_or_404(RecurringSchedule, pk=pk, clinic=clinic) if pk else None
@@ -525,7 +731,7 @@ def recurring_schedule_form(request, pk=None):
     )
 
 
-@staff_required
+@role_required(is_admin, is_front_desk)
 def closed_window_form(request, pk=None):
     clinic = request.clinic
     instance = get_object_or_404(ClosedWindow, pk=pk, clinic=clinic) if pk else None
@@ -548,7 +754,7 @@ def closed_window_form(request, pk=None):
     )
 
 
-@staff_required
+@role_required(is_admin, is_front_desk)
 def occasional_schedule_form(request, pk=None):
     clinic = request.clinic
     instance = get_object_or_404(OccasionalSchedule, pk=pk, clinic=clinic) if pk else None
@@ -571,7 +777,7 @@ def occasional_schedule_form(request, pk=None):
     )
 
 
-@staff_required
+@role_required(is_admin, is_front_desk)
 def recurring_schedule_delete(request, pk):
     obj = get_object_or_404(RecurringSchedule, pk=pk, clinic=request.clinic)
     if request.method == "POST":
@@ -588,7 +794,7 @@ def recurring_schedule_delete(request, pk):
     )
 
 
-@staff_required
+@role_required(is_admin, is_front_desk)
 def closed_window_delete(request, pk):
     obj = get_object_or_404(ClosedWindow, pk=pk, clinic=request.clinic)
     if request.method == "POST":
@@ -605,7 +811,7 @@ def closed_window_delete(request, pk):
     )
 
 
-@staff_required
+@role_required(is_admin, is_front_desk)
 def occasional_schedule_delete(request, pk):
     obj = get_object_or_404(OccasionalSchedule, pk=pk, clinic=request.clinic)
     if request.method == "POST":

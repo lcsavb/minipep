@@ -63,6 +63,7 @@
             </div>
         </div>
 
+        {% if can_view_clinical %}
         <!-- Anamnesis & Prescription form -->
         {% if encounter.status == "in_progress" or encounter.status == "arrived" %}
         <div class="rounded-lg border border-gray-200 bg-white p-5 mb-6">
@@ -100,6 +101,7 @@
             </div>
         </div>
         {% endif %}
+        {% endif %}
 
         <!-- Action buttons -->
         <div class="flex items-center gap-3">
@@ -128,12 +130,14 @@
             </form>
             {% endif %}
 
+            {% if can_view_clinical %}
             <a href="{% url 'encounter-print' encounter.pk 'prescription' %}" target="_blank" class="rounded-lg bg-white border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition">
                 {% trans "Print Prescription" %}
             </a>
             <a href="{% url 'encounter-print' encounter.pk 'summary' %}" target="_blank" class="rounded-lg bg-white border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition">
                 {% trans "Print Summary" %}
             </a>
+            {% endif %}
 
             <a href="{% url 'dashboard' %}" class="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition">
                 {% trans "Back to Dashboard" %}

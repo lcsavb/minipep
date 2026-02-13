@@ -65,11 +65,22 @@
                             {% if slots %}
                                 <div class="flex flex-col gap-1">
                                     {% for slot in slots|slice:":8" %}
-                                    <button type="button"
-                                            onclick="showBookingForm({{ entry.doctor.pk }}, '{{ d|date:'Y-m-d' }}', '{{ slot|time:'H:i' }}')"
-                                            class="rounded bg-violet-50 px-2 py-1 text-xs font-medium text-violet-700 hover:bg-violet-100 transition cursor-pointer">
-                                        {{ slot|time:"H:i" }}
-                                    </button>
+                                        {% if slot.status == "available" %}
+                                        <button type="button"
+                                                onclick="showBookingForm({{ entry.doctor.pk }}, '{{ d|date:'Y-m-d' }}', '{{ slot.time|time:'H:i' }}')"
+                                                class="rounded bg-violet-50 px-2 py-1 text-xs font-medium text-violet-700 hover:bg-violet-100 transition cursor-pointer">
+                                            {{ slot.time|time:"H:i" }}
+                                        </button>
+                                        {% else %}
+                                        <div class="group relative">
+                                            <button type="button"
+                                                    onclick="showCancelConfirm(this, {{ slot.encounter_id }}, '{{ d|date:'Y-m-d' }}')"
+                                                    class="w-full rounded bg-violet-200 px-2 py-1 text-xs font-medium text-violet-900 hover:bg-violet-300 transition cursor-pointer text-left truncate"
+                                                    title="{{ slot.patient_name }}">
+                                                {{ slot.time|time:"H:i" }} — {{ slot.patient_name }}
+                                            </button>
+                                        </div>
+                                        {% endif %}
                                     {% endfor %}
                                     {% with extra=slots|length %}
                                     {% if extra > 8 %}
@@ -82,11 +93,22 @@
                                     </button>
                                     <div class="hidden flex flex-col gap-1" data-extra="{{ entry.doctor.pk }}-{{ d|date:'Y-m-d' }}">
                                         {% for slot in slots|slice:"8:" %}
-                                        <button type="button"
-                                                onclick="showBookingForm({{ entry.doctor.pk }}, '{{ d|date:'Y-m-d' }}', '{{ slot|time:'H:i' }}')"
-                                                class="rounded bg-violet-50 px-2 py-1 text-xs font-medium text-violet-700 hover:bg-violet-100 transition cursor-pointer">
-                                            {{ slot|time:"H:i" }}
-                                        </button>
+                                            {% if slot.status == "available" %}
+                                            <button type="button"
+                                                    onclick="showBookingForm({{ entry.doctor.pk }}, '{{ d|date:'Y-m-d' }}', '{{ slot.time|time:'H:i' }}')"
+                                                    class="rounded bg-violet-50 px-2 py-1 text-xs font-medium text-violet-700 hover:bg-violet-100 transition cursor-pointer">
+                                                {{ slot.time|time:"H:i" }}
+                                            </button>
+                                            {% else %}
+                                            <div class="group relative">
+                                                <button type="button"
+                                                        onclick="showCancelConfirm(this, {{ slot.encounter_id }}, '{{ d|date:'Y-m-d' }}')"
+                                                        class="w-full rounded bg-violet-200 px-2 py-1 text-xs font-medium text-violet-900 hover:bg-violet-300 transition cursor-pointer text-left truncate"
+                                                        title="{{ slot.patient_name }}">
+                                                    {{ slot.time|time:"H:i" }} — {{ slot.patient_name }}
+                                                </button>
+                                            </div>
+                                            {% endif %}
                                         {% endfor %}
                                     </div>
                                     {% endif %}
@@ -157,6 +179,27 @@
     </main>
 </div>
 
+<!-- Cancel confirmation popover -->
+<div id="cancel-confirm" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/20">
+    <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-lg max-w-xs w-full mx-4">
+        <p class="text-sm text-gray-700 mb-3">{% trans "Unschedule this appointment?" %}</p>
+        <form id="cancel-form" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="next" id="cancel-next" value="">
+            <div class="flex justify-end gap-2">
+                <button type="button" onclick="hideCancelConfirm()"
+                        class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 transition">
+                    {% trans "No" %}
+                </button>
+                <button type="submit"
+                        class="rounded-lg bg-red-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-red-500 transition">
+                    {% trans "Yes, unschedule" %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 function showBookingForm(doctorPk, date, slot) {
     // Hide any currently open booking forms
@@ -191,6 +234,20 @@ function toggleExtra(btn) {
             btn.classList.add('hidden');
         }
     }
+}
+
+function showCancelConfirm(btn, encounterId, date) {
+    var form = document.getElementById('cancel-form');
+    form.action = '/encounters/' + encounterId + '/cancel/';
+    // Build redirect URL back to booking page with current week
+    var weekParam = new URLSearchParams(window.location.search).get('week') || '';
+    var nextUrl = '{% url "encounter-create" %}' + (weekParam ? '?week=' + weekParam : '');
+    document.getElementById('cancel-next').value = nextUrl;
+    document.getElementById('cancel-confirm').classList.remove('hidden');
+}
+
+function hideCancelConfirm() {
+    document.getElementById('cancel-confirm').classList.add('hidden');
 }
 </script>
 {% endblock %}

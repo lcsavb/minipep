@@ -10,88 +10,157 @@
     <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-lg font-semibold text-gray-900">{% trans "Today's Encounters" %}</h2>
-            {% if user.is_staff %}
+            {% if is_admin or is_front_desk %}
             <a href="{% url 'encounter-create' %}" class="rounded-lg bg-violet-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-violet-500 transition">{% trans "Book appointment" %}</a>
             {% endif %}
         </div>
 
-        {% if encounters %}
-        <div class="overflow-hidden rounded-lg border border-gray-200 bg-white">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead>
-                    <tr class="bg-gray-50/60">
-                        <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{% trans "Time" %}</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{% trans "Patient" %}</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{% trans "Doctor" %}</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{% trans "Status" %}</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{% trans "Action" %}</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    {% for enc in encounters %}
-                    <tr class="hover:bg-gray-50/50 transition-colors">
-                        <td class="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">{{ enc.scheduled_at|time:"H:i" }}</td>
-                        <td class="whitespace-nowrap px-4 py-3 text-sm"><a href="{% url 'encounter-detail' enc.pk %}" class="text-violet-600 hover:text-violet-500 font-medium">{{ enc.patient }}</a></td>
-                        <td class="whitespace-nowrap px-4 py-3 text-sm"><a href="{% url 'schedule-list' %}?doctor={{ enc.doctor.pk }}" class="text-violet-600 hover:text-violet-500 font-medium">{{ enc.doctor }}</a></td>
-                        <td class="whitespace-nowrap px-4 py-3 text-sm">
-                            {% if enc.status == "scheduled" %}
-                                <span class="inline-flex items-center rounded-full bg-sky-50 px-2.5 py-0.5 text-xs font-medium text-sky-700">{% trans "Scheduled" %}</span>
-                            {% elif enc.status == "arrived" %}
-                                <span class="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700">{% trans "Arrived" %}</span>
-                            {% elif enc.status == "in_progress" %}
-                                <span class="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700">{% trans "In Progress" %}</span>
-                            {% elif enc.status == "completed" %}
-                                <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">{% trans "Completed" %}</span>
-                            {% elif enc.status == "cancelled" %}
-                                <span class="inline-flex items-center rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-medium text-red-600">{% trans "Cancelled" %}</span>
-                            {% endif %}
-                        </td>
-                        <td class="whitespace-nowrap px-4 py-3 text-sm">
-                            <div class="flex items-center gap-2">
-                            {% if enc.status == "scheduled" %}
-                                <form method="post" action="{% url 'encounter-mark-arrived' enc.pk %}">
-                                    {% csrf_token %}
-                                    <button type="submit" class="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-500 transition">
-                                        {% trans "Mark Arrived" %}
-                                    </button>
-                                </form>
-                                <form method="post" action="{% url 'encounter-cancel' enc.pk %}">
-                                    {% csrf_token %}
-                                    <button type="submit" class="rounded-lg bg-white border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-red-600 hover:border-red-300 transition">
-                                        {% trans "Cancel" %}
-                                    </button>
-                                </form>
-                            {% elif enc.status == "arrived" %}
-                                <form method="post" action="{% url 'encounter-start' enc.pk %}">
-                                    {% csrf_token %}
-                                    <button type="submit" class="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-500 transition">
-                                        {% trans "Start Consultation" %}
-                                    </button>
-                                </form>
-                                <form method="post" action="{% url 'encounter-cancel' enc.pk %}">
-                                    {% csrf_token %}
-                                    <button type="submit" class="rounded-lg bg-white border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-red-600 hover:border-red-300 transition">
-                                        {% trans "Cancel" %}
-                                    </button>
-                                </form>
-                            {% elif enc.status == "in_progress" %}
-                                <form method="post" action="{% url 'encounter-complete' enc.pk %}">
-                                    {% csrf_token %}
-                                    <button type="submit" class="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-500 transition">
-                                        {% trans "Complete" %}
-                                    </button>
-                                </form>
-                            {% endif %}
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% else %}
+        {% if not in_progress and not waiting and not upcoming and not done %}
         <div class="rounded-lg border border-dashed border-gray-300 bg-white px-6 py-16 text-center">
             <p class="text-sm text-gray-400">{% trans "No encounters scheduled for today." %}</p>
+        </div>
+        {% else %}
+        <div class="space-y-8">
+
+            {# — In Consultation — #}
+            {% if in_progress %}
+            <section>
+                <h3 class="flex items-center gap-2 text-sm font-semibold text-amber-700 mb-3">
+                    <span class="relative flex h-2.5 w-2.5">
+                        <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75"></span>
+                        <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-amber-500"></span>
+                    </span>
+                    {% trans "In Consultation" %}
+                    <span class="inline-flex items-center justify-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">{{ in_progress|length }}</span>
+                </h3>
+                <div class="space-y-3">
+                    {% for enc in in_progress %}
+                    <div class="rounded-lg border-2 border-amber-300 bg-amber-50/50 p-4">
+                        <div class="flex items-center justify-between flex-wrap gap-3">
+                            <div class="flex items-center gap-4">
+                                <span class="text-sm font-semibold text-gray-900">{{ enc.scheduled_at|time:"H:i" }}</span>
+                                <a href="{% url 'encounter-detail' enc.pk %}" class="text-sm font-medium text-violet-600 hover:text-violet-500">{{ enc.patient }}</a>
+                                {% if is_admin or is_front_desk %}
+                                <span class="text-sm text-gray-500">{{ enc.doctor }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <a href="{% url 'encounter-detail' enc.pk %}" class="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-500 transition">{% trans "Open Chart" %}</a>
+                                <form method="post" action="{% url 'encounter-complete' enc.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="rounded-lg bg-white border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-emerald-600 hover:border-emerald-300 transition">{% trans "Complete" %}</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+
+            {# — Waiting Room — #}
+            {% if waiting %}
+            <section>
+                <h3 class="flex items-center gap-2 text-sm font-semibold text-emerald-700 mb-3">
+                    <span class="inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+                    {% trans "Waiting Room" %}
+                    <span class="inline-flex items-center justify-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">{{ waiting|length }}</span>
+                </h3>
+                <div class="space-y-3">
+                    {% for enc in waiting %}
+                    <div class="rounded-lg border border-emerald-200 bg-white p-4">
+                        <div class="flex items-center justify-between flex-wrap gap-3">
+                            <div class="flex items-center gap-4">
+                                <span class="text-sm font-semibold text-gray-900">{{ enc.scheduled_at|time:"H:i" }}</span>
+                                <a href="{% url 'encounter-detail' enc.pk %}" class="text-sm font-medium text-violet-600 hover:text-violet-500">{{ enc.patient }}</a>
+                                {% if is_admin or is_front_desk %}
+                                <span class="text-sm text-gray-500">{{ enc.doctor }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <form method="post" action="{% url 'encounter-start' enc.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-500 transition">{% trans "Start Consultation" %}</button>
+                                </form>
+                                <form method="post" action="{% url 'encounter-cancel' enc.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="rounded-lg bg-white border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-red-600 hover:border-red-300 transition">{% trans "Cancel" %}</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+
+            {# — Upcoming — #}
+            {% if upcoming %}
+            <section>
+                <h3 class="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
+                    <span class="inline-flex h-2.5 w-2.5 rounded-full bg-sky-400"></span>
+                    {% trans "Upcoming" %}
+                    <span class="inline-flex items-center justify-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">{{ upcoming|length }}</span>
+                </h3>
+                <div class="space-y-3">
+                    {% for enc in upcoming %}
+                    <div class="rounded-lg border border-gray-200 bg-white p-4">
+                        <div class="flex items-center justify-between flex-wrap gap-3">
+                            <div class="flex items-center gap-4">
+                                <span class="text-sm font-semibold text-gray-900">{{ enc.scheduled_at|time:"H:i" }}</span>
+                                <a href="{% url 'encounter-detail' enc.pk %}" class="text-sm font-medium text-violet-600 hover:text-violet-500">{{ enc.patient }}</a>
+                                {% if is_admin or is_front_desk %}
+                                <span class="text-sm text-gray-500">{{ enc.doctor }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="flex items-center gap-2">
+                                {% if is_admin or is_front_desk %}
+                                <form method="post" action="{% url 'encounter-mark-arrived' enc.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-500 transition">{% trans "Mark Arrived" %}</button>
+                                </form>
+                                {% endif %}
+                                <form method="post" action="{% url 'encounter-cancel' enc.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="rounded-lg bg-white border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-red-600 hover:border-red-300 transition">{% trans "Cancel" %}</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+
+            {# — Done — #}
+            {% if done %}
+            <section>
+                <button type="button" onclick="var list=document.getElementById('done-list');var arrow=document.getElementById('done-arrow');list.classList.toggle('hidden');arrow.classList.toggle('rotate-90')" class="flex items-center gap-2 text-sm font-semibold text-gray-400 mb-3 cursor-pointer hover:text-gray-600 transition">
+                    <svg id="done-arrow" class="h-4 w-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    {% trans "Done" %}
+                    <span class="inline-flex items-center justify-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">{{ done|length }}</span>
+                </button>
+                <div id="done-list" class="hidden space-y-2">
+                    {% for enc in done %}
+                    <div class="rounded-lg border border-gray-100 bg-gray-50 p-3">
+                        <div class="flex items-center gap-4">
+                            <span class="text-sm text-gray-400">{{ enc.scheduled_at|time:"H:i" }}</span>
+                            <a href="{% url 'encounter-detail' enc.pk %}" class="text-sm text-gray-500 hover:text-violet-600">{{ enc.patient }}</a>
+                            {% if is_admin or is_front_desk %}
+                            <span class="text-sm text-gray-400">{{ enc.doctor }}</span>
+                            {% endif %}
+                            {% if enc.status == "completed" %}
+                            <span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">{% trans "Completed" %}</span>
+                            {% else %}
+                            <span class="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-500">{% trans "Cancelled" %}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+
         </div>
         {% endif %}
     </main>

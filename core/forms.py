@@ -160,6 +160,51 @@ class DoctorForm(forms.Form):
         return license_number
 
 
+class FrontDeskForm(forms.Form):
+    first_name = forms.CharField(max_length=150, label=_("First name"))
+    last_name = forms.CharField(max_length=150, label=_("Last name"))
+    email = forms.EmailField(label=_("Email"))
+    password = forms.CharField(
+        widget=forms.PasswordInput,
+        required=False,
+        label=_("Password"),
+        help_text=_("Leave blank to keep current password."),
+    )
+
+    def __init__(self, *args, instance=None, **kwargs):
+        self.instance = instance
+        if instance:
+            kwargs.setdefault("initial", {})
+            kwargs["initial"].update(
+                {
+                    "first_name": instance.first_name,
+                    "last_name": instance.last_name,
+                    "email": instance.email,
+                }
+            )
+        super().__init__(*args, **kwargs)
+        if not instance:
+            self.fields["password"].required = True
+            self.fields["password"].help_text = ""
+        for field in self.fields.values():
+            widget = field.widget
+            if isinstance(widget, forms.Select):
+                widget.attrs["class"] = SELECT_CSS
+            elif isinstance(widget, forms.CheckboxInput):
+                widget.attrs["class"] = CHECKBOX_CSS
+            else:
+                widget.attrs["class"] = INPUT_CSS
+
+    def clean_email(self):
+        email = self.cleaned_data["email"]
+        qs = User.objects.filter(email=email)
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise forms.ValidationError(_("A user with this email already exists."))
+        return email
+
+
 class PatientForm(forms.ModelForm):
     class Meta:
         model = Patient

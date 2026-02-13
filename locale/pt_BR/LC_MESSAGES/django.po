@@ -397,3 +397,23 @@ msgstr "Imprimir Resumo"
 
 msgid "Encounter Summary"
 msgstr "Resumo da Consulta"
+
+# --- Doctor Dashboard / Schedule ---
+
+msgid "My Schedule"
+msgstr "Minha Agenda"
+
+msgid "In Consultation"
+msgstr "Em Atendimento"
+
+msgid "Waiting Room"
+msgstr "Sala de Espera"
+
+msgid "Upcoming"
+msgstr "Agendados"
+
+msgid "Done"
+msgstr "Concluídos"
+
+msgid "Open Chart"
+msgstr "Abrir Prontuário"

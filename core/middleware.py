@@ -2,6 +2,7 @@ from django.shortcuts import redirect
 from django.urls import resolve, reverse, Resolver404
 
 from .models import Clinic
+from .views import is_front_desk
 
 ALLOWED_WITHOUT_CLINIC = {
     "login",
@@ -50,7 +51,7 @@ class ClinicMiddleware:
             except Resolver404:
                 url_name = None
             if url_name not in ALLOWED_WITHOUT_CLINIC:
-                if request.user.is_staff:
+                if request.user.is_staff or is_front_desk(request.user):
                     return redirect("clinic-list")
                 return redirect("dashboard")
 

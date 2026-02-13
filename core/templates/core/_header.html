@@ -3,14 +3,27 @@
         <div class="flex items-center gap-8">
             <a href="{% url 'dashboard' %}" class="text-lg font-bold text-white tracking-tight">minipep</a>
             <nav class="flex items-center gap-1 text-sm font-medium">
+                {% if is_front_desk and not is_admin %}
+                <a href="{% url 'front-desk-dashboard' %}"
+                   class="rounded-md px-3 py-1.5 {% if request.resolver_match.url_name == 'front-desk-dashboard' %}bg-violet-500 text-white{% else %}text-violet-200 hover:bg-violet-500 hover:text-white{% endif %} transition">
+                    {% trans "Dashboard" %}
+                </a>
+                {% else %}
                 <a href="{% url 'dashboard' %}"
                    class="rounded-md px-3 py-1.5 {% if request.resolver_match.url_name == 'dashboard' %}bg-violet-500 text-white{% else %}text-violet-200 hover:bg-violet-500 hover:text-white{% endif %} transition">
                     {% trans "Dashboard" %}
                 </a>
-                {% if user.is_staff %}
-                <a href="{% url 'clinic-list' %}"
-                   class="rounded-md px-3 py-1.5 {% if 'clinic' in request.resolver_match.url_name %}bg-violet-500 text-white{% else %}text-violet-200 hover:bg-violet-500 hover:text-white{% endif %} transition">
-                    {% trans "Clinics" %}
+                {% endif %}
+                {% if not user.is_staff and not is_front_desk %}
+                <a href="{% url 'doctor-schedule' %}"
+                   class="rounded-md px-3 py-1.5 {% if request.resolver_match.url_name == 'doctor-schedule' %}bg-violet-500 text-white{% else %}text-violet-200 hover:bg-violet-500 hover:text-white{% endif %} transition">
+                    {% trans "My Schedule" %}
+                </a>
+                {% endif %}
+                {% if is_admin or is_front_desk %}
+                <a href="{% url 'encounter-create' %}"
+                   class="rounded-md px-3 py-1.5 {% if 'encounter-create' == request.resolver_match.url_name %}bg-violet-500 text-white{% else %}text-violet-200 hover:bg-violet-500 hover:text-white{% endif %} transition">
+                    {% trans "Book" %}
                 </a>
                 <a href="{% url 'patient-list' %}"
                    class="rounded-md px-3 py-1.5 {% if 'patient' in request.resolver_match.url_name %}bg-violet-500 text-white{% else %}text-violet-200 hover:bg-violet-500 hover:text-white{% endif %} transition">
@@ -23,6 +36,16 @@
                 <a href="{% url 'schedule-list' %}"
                    class="rounded-md px-3 py-1.5 {% if 'schedule' in request.resolver_match.url_name %}bg-violet-500 text-white{% else %}text-violet-200 hover:bg-violet-500 hover:text-white{% endif %} transition">
                     {% trans "Schedules" %}
+                </a>
+                {% endif %}
+                {% if is_admin %}
+                <a href="{% url 'clinic-list' %}"
+                   class="rounded-md px-3 py-1.5 {% if 'clinic' in request.resolver_match.url_name %}bg-violet-500 text-white{% else %}text-violet-200 hover:bg-violet-500 hover:text-white{% endif %} transition">
+                    {% trans "Clinics" %}
+                </a>
+                <a href="{% url 'front-desk-list' %}"
+                   class="rounded-md px-3 py-1.5 {% if 'front-desk' in request.resolver_match.url_name %}bg-violet-500 text-white{% else %}text-violet-200 hover:bg-violet-500 hover:text-white{% endif %} transition">
+                    {% trans "Front Desk" %}
                 </a>
                 {% endif %}
             </nav>

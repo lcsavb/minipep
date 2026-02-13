@@ -4,9 +4,11 @@ from . import views
 
 urlpatterns = [
     path("", views.dashboard, name="dashboard"),
+    path("front-desk-dashboard/", views.front_desk_dashboard, name="front-desk-dashboard"),
     path("login/", views.login_view, name="login"),
     path("select-clinic/", views.select_clinic, name="select-clinic"),
     path("logout/", views.logout_view, name="logout"),
+    path("my-schedule/", views.doctor_schedule, name="doctor-schedule"),
     # Encounters
     path("encounters/<int:pk>/", views.encounter_detail, name="encounter-detail"),
     path("encounters/<int:pk>/print/<str:doc_type>/", views.encounter_print, name="encounter-print"),
@@ -42,6 +44,11 @@ urlpatterns = [
     path("patients/<int:pk>/edit/", views.patient_form, name="patient-edit"),
     path("patients/<int:pk>/", views.patient_detail, name="patient-detail"),
     path("patients/<int:pk>/delete/", views.patient_delete, name="patient-delete"),
+    # Front Desk
+    path("front-desk/", views.front_desk_list, name="front-desk-list"),
+    path("front-desk/new/", views.front_desk_form, name="front-desk-create"),
+    path("front-desk/<int:pk>/edit/", views.front_desk_form, name="front-desk-edit"),
+    path("front-desk/<int:pk>/delete/", views.front_desk_delete, name="front-desk-delete"),
     # Doctors
     path("doctors/", views.doctor_list, name="doctor-list"),
     path("doctors/new/", views.doctor_form, name="doctor-create"),

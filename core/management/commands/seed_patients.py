@@ -1,5 +1,6 @@
 from datetime import date, datetime, timedelta
 
+from django.contrib.auth.models import Group
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
@@ -78,3 +79,15 @@ class Command(BaseCommand):
             )
         Encounter.objects.bulk_create(encounters)
         self.stdout.write(self.style.SUCCESS(f"Created {len(encounters)} encounters for {today}"))
+
+        # Front desk user
+        front_desk_user, created = User.objects.get_or_create(
+            email="frontdesk@minipep.com",
+            defaults={"first_name": "Front", "last_name": "Desk"},
+        )
+        if created:
+            front_desk_user.set_password("password")
+            front_desk_user.save()
+        front_desk_group, _ = Group.objects.get_or_create(name="front_desk")
+        front_desk_user.groups.add(front_desk_group)
+        self.stdout.write(self.style.SUCCESS("Created front desk user (frontdesk@minipep.com)"))
